@@ -8,6 +8,12 @@ const roleSchema = z.object({
   role: z.enum(["ADMIN", "REVIEWER", "INTERN"]),
 });
 
+const updateUserSchema = z.object({
+  fullName: z.string().min(2).optional(),
+  role: z.enum(["ADMIN", "REVIEWER", "INTERN"]).optional(),
+  isActive: z.boolean().optional(),
+});
+
 export const usersRouter = Router();
 
 usersRouter.get("/me", authenticate, (req: AuthenticatedRequest, res) => {
@@ -62,6 +68,27 @@ usersRouter.patch("/:userId/approve", authenticate, authorize("ADMIN"), (req, re
   res.json({ success: true, data: { message: "User approved" } });
 });
 
+usersRouter.patch("/:userId/reject", authenticate, authorize("ADMIN"), (req, res) => {
+  const user = userRepository.findById(req.params.userId);
+  if (!user) {
+    res.status(404).json({ success: false, error: "User not found" });
+    return;
+  }
+
+  user.approvedByAdmin = false;
+  user.isActive = false;
+  userRepository.update(user);
+
+  notificationRepository.create({
+    userId: user.id,
+    title: "Account update",
+    message: "Your account was rejected by an administrator",
+    type: "STATUS_CHANGED",
+  });
+
+  res.json({ success: true, data: { message: "User rejected" } });
+});
+
 usersRouter.patch("/:userId/role", authenticate, authorize("ADMIN"), validateBody(roleSchema), (req, res) => {
   const user = userRepository.findById(req.params.userId);
   if (!user) {
@@ -72,4 +99,19 @@ usersRouter.patch("/:userId/role", authenticate, authorize("ADMIN"), validateBod
   user.role = req.body.role;
   userRepository.update(user);
   res.json({ success: true, data: { message: "Role updated" } });
+});
+
+usersRouter.patch("/:userId", authenticate, authorize("ADMIN"), validateBody(updateUserSchema), (req, res) => {
+  const user = userRepository.findById(req.params.userId);
+  if (!user) {
+    res.status(404).json({ success: false, error: "User not found" });
+    return;
+  }
+
+  if (req.body.fullName !== undefined) user.fullName = req.body.fullName;
+  if (req.body.role !== undefined) user.role = req.body.role;
+  if (req.body.isActive !== undefined) user.isActive = req.body.isActive;
+
+  userRepository.update(user);
+  res.json({ success: true, data: user });
 });

@@ -32,3 +32,12 @@ export interface SessionUser {
   role: UserRole;
   approvedByAdmin: boolean;
 }
+
+export interface AdminUser {
+  id: string;
+  fullName: string;
+  email: string;
+  role: UserRole;
+  approvedByAdmin: boolean;
+  isActive: boolean;
+}

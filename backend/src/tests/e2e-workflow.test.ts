@@ -5,7 +5,7 @@ import request from "supertest";
 const baseEnv: Record<string, string> = {
   NODE_ENV: "test",
   PORT: "3000",
-  POSTGRES_URI: "postgresql://user:pass@localhost:5432/drid",
+  DATABASE_URL: "postgresql://user:pass@localhost:5432/drid",
   FRONTEND_URL: "http://127.0.0.1:3001",
   API_URL: "http://localhost:3000",
   LOG_LEVEL: "info",

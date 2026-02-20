@@ -1,10 +1,27 @@
 import { Router } from "express";
 import { authenticate, authorize } from "../../middleware/auth";
-import { validateBody } from "../../middleware/validate";
+import { validateBody, validateQuery } from "../../middleware/validate";
 import { challengeRepository, cohortRepository } from "../common/repositories";
-import { createChallengeSchema, updateChallengeSchema } from "./challenges.schemas";
+import { createChallengeSchema, listChallengesQuerySchema, updateChallengeSchema } from "./challenges.schemas";
 
 export const challengesRouter = Router();
+
+challengesRouter.get("/", authenticate, authorize("ADMIN"), validateQuery(listChallengesQuerySchema), (req, res) => {
+  const cohortId = typeof req.query.cohortId === "string" ? req.query.cohortId : undefined;
+  const category = typeof req.query.category === "string" ? req.query.category : undefined;
+
+  const base = cohortId
+    ? challengeRepository.listByCohort(cohortId)
+    : cohortRepository.list().flatMap((cohort) => challengeRepository.listByCohort(cohort.id));
+
+  const filtered = category ? base.filter((item) => item.category === category) : base;
+
+  const latest = filtered
+    .sort((a, b) => b.version - a.version)
+    .filter((item, index, arr) => arr.findIndex((other) => other.cohortId === item.cohortId && other.category === item.category) === index);
+
+  res.json({ success: true, data: latest });
+});
 
 challengesRouter.get("/active", (_req, res) => {
   const active = cohortRepository.findActive();

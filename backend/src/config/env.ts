@@ -15,7 +15,8 @@ const loadEnvFiles = (): void => {
   files.forEach((file) => {
     const filePath = path.join(backendRoot, file.name);
     if (fs.existsSync(filePath)) {
-      dotenv.config({ path: filePath, override: file.override });
+      const overrideFromFile = process.env.NODE_ENV === "test" ? false : file.override;
+      dotenv.config({ path: filePath, override: overrideFromFile });
     }
   });
 };
@@ -38,10 +39,21 @@ const cleanStringValue = (value: unknown): unknown => {
   return trimmed;
 };
 
+const cleanOptionalUrlValue = (value: unknown): unknown => {
+  const cleaned = cleanStringValue(value);
+  if (cleaned === "") {
+    return undefined;
+  }
+
+  return cleaned;
+};
+
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(4000),
-  POSTGRES_URI_URI: z.preprocess(cleanStringValue, z.string().url()),
+  DATABASE_URL: z.preprocess(cleanOptionalUrlValue, z.string().url().optional()),
+  SHADOW_DATABASE_URL: z.preprocess(cleanOptionalUrlValue, z.string().url().optional()),
+  MONGODB_URI: z.preprocess(cleanOptionalUrlValue, z.string().url().optional()),
   FRONTEND_URL: z.preprocess(cleanStringValue, z.string().url()),
   API_URL: z.preprocess(cleanStringValue, z.string().url()),
   LOG_LEVEL: z.preprocess(cleanStringValue, z.enum(["error", "warn", "info", "debug"]))
@@ -66,3 +78,7 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data;
+
+if (!env.DATABASE_URL && !env.MONGODB_URI) {
+  throw new Error("Invalid environment configuration:\nDATABASE_URL or MONGODB_URI must be provided");
+}

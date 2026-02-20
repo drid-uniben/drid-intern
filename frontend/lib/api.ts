@@ -1,4 +1,18 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
+const resolveApiBase = (): string => {
+  const raw = process.env.NEXT_PUBLIC_API_URL ?? process.env.API_BASE ?? "http://localhost:3000/api/v1";
+
+  if (raw.startsWith("http://") || raw.startsWith("https://")) {
+    return raw.replace(/\/$/, "");
+  }
+
+  if (raw.startsWith("/")) {
+    return `http://localhost:3000${raw}`.replace(/\/$/, "");
+  }
+
+  return `http://${raw}`.replace(/\/$/, "");
+};
+
+const API_BASE = resolveApiBase();
 
 interface ApiResult<T> {
   success: boolean;
@@ -7,6 +21,15 @@ interface ApiResult<T> {
 }
 
 const parseJson = async <T>(response: Response): Promise<ApiResult<T>> => {
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/json")) {
+    const text = await response.text();
+    return {
+      success: false,
+      error: response.ok ? "Unexpected non-JSON response" : `Request failed (${response.status}): ${text.slice(0, 120)}`,
+    };
+  }
+
   const body = (await response.json()) as ApiResult<T>;
   if (!response.ok || !body.success) {
     return { success: false, error: body.error ?? "Request failed" };
