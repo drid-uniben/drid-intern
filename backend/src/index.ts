@@ -1,14 +1,15 @@
-import express, { type Request, type Response } from "express";
+import { app } from "./app";
+import { env } from "./config/env";
+import { seedAdmin } from "./bootstrap/seedAdmin";
 
-const app = express();
-const port = Number(process.env.PORT) || 4000;
+const start = async (): Promise<void> => {
+  await seedAdmin();
+  app.listen(env.PORT, () => {
+    console.log(`Server listening on port ${env.PORT}`);
+  });
+};
 
-app.use(express.json());
-
-app.get("/", (_req: Request, res: Response) => {
-  res.json({ message: "Backend is running" });
-});
-
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+start().catch((error: unknown) => {
+  console.error("Failed to start server", error);
+  process.exit(1);
 });
