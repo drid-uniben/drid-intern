@@ -24,27 +24,27 @@ authRouter.post("/login", validateBody(loginSchema), async (req, res, next) => {
   }
 });
 
-authRouter.post("/refresh", validateBody(refreshSchema), (req, res, next) => {
+authRouter.post("/refresh", validateBody(refreshSchema), async (req, res, next) => {
   try {
     const incoming = req.body.refreshToken ?? req.cookies?.refreshToken;
     if (!incoming) {
       throw new Error("Refresh token is required");
     }
 
-    const result = refreshUserSession(incoming);
+    const result = await refreshUserSession(incoming);
     res.json(result);
   } catch (error) {
     next(error);
   }
 });
 
-authRouter.post("/logout", authenticate, (req: AuthenticatedRequest, res, next) => {
+authRouter.post("/logout", authenticate, async (req: AuthenticatedRequest, res, next) => {
   try {
     if (!req.auth) {
       throw new Error("Unauthorized");
     }
 
-    const result = logoutUser(req.auth.userId);
+    const result = await logoutUser(req.auth.userId);
     res.json(result);
   } catch (error) {
     next(error);

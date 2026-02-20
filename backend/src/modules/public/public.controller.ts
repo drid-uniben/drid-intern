@@ -3,8 +3,8 @@ import { challengeRepository, cohortRepository } from "../common/repositories";
 
 export const publicRouter = Router();
 
-publicRouter.get("/cohort", (_req, res) => {
-  const active = cohortRepository.findActive();
+publicRouter.get("/cohort", async (_req, res) => {
+  const active = await cohortRepository.findActive();
   if (!active) {
     res.status(404).json({ success: false, error: "No active cohort" });
     return;
@@ -13,14 +13,14 @@ publicRouter.get("/cohort", (_req, res) => {
   res.json({ success: true, data: active });
 });
 
-publicRouter.get("/challenges", (_req, res) => {
-  const active = cohortRepository.findActive();
+publicRouter.get("/challenges", async (_req, res) => {
+  const active = await cohortRepository.findActive();
   if (!active) {
     res.status(404).json({ success: false, error: "No active cohort" });
     return;
   }
 
-  const challenges = challengeRepository.listByCohort(active.id)
+  const challenges = (await challengeRepository.listByCohort(active.id))
     .sort((a, b) => b.version - a.version)
     .filter((item, index, arr) => arr.findIndex((other) => other.category === item.category) === index);
 

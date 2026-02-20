@@ -111,14 +111,9 @@ jobs:
         run: pnpm prisma generate
 
 
-      # Apply migrations (production-correct)
+      # Apply migrations
       - name: Prisma migrate deploy
         run: pnpm prisma migrate deploy
-
-
-      # Optional safety (if no migrations exist yet)
-      - name: Prisma db push (fallback)
-        run: pnpm prisma db push
 
 
       - name: Lint
