@@ -3,7 +3,7 @@ import { hashPassword } from "../lib/crypto";
 import { userRepository } from "../modules/common/repositories";
 
 export const seedAdmin = async (): Promise<void> => {
-  const existing = userRepository.findByEmail(env.ADMIN_EMAIL);
+  const existing = await userRepository.findByEmail(env.ADMIN_EMAIL);
   if (existing) {
     return;
   }

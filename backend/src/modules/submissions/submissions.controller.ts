@@ -6,8 +6,8 @@ import { createSubmissionSchema, listSubmissionsQuerySchema } from "./submission
 
 export const submissionsRouter = Router();
 
-submissionsRouter.post("/", validateBody(createSubmissionSchema), (req, res) => {
-  const invitation = invitationRepository.findByToken(req.body.invitationToken);
+submissionsRouter.post("/", validateBody(createSubmissionSchema), async (req, res) => {
+  const invitation = await invitationRepository.findByToken(req.body.invitationToken);
   if (!invitation) {
     res.status(404).json({ success: false, error: "Invitation not found" });
     return;
@@ -18,12 +18,12 @@ submissionsRouter.post("/", validateBody(createSubmissionSchema), (req, res) => 
     return;
   }
 
-  if (submissionRepository.findByInvitationId(invitation.id)) {
+  if (await submissionRepository.findByInvitationId(invitation.id)) {
     res.status(409).json({ success: false, error: "Submission already exists for this invitation" });
     return;
   }
 
-  const submission = submissionRepository.create({
+  const submission = await submissionRepository.create({
     cohortId: invitation.cohortId,
     invitationId: invitation.id,
     category: invitation.category,
@@ -37,22 +37,25 @@ submissionsRouter.post("/", validateBody(createSubmissionSchema), (req, res) => 
   });
 
   invitation.acceptedAt = new Date().toISOString();
-  invitationRepository.update(invitation);
+  await invitationRepository.update(invitation);
 
-  userRepository.list().filter((user) => user.role === "ADMIN" || user.role === "REVIEWER").forEach((user) => {
-    notificationRepository.create({
-      userId: user.id,
-      title: "New submission",
-      message: `${submission.fullName} submitted a ${submission.category} challenge`,
-      type: "NEW_SUBMISSION",
-    });
-  });
+  const users = await userRepository.list();
+  await Promise.all(
+    users.filter((user) => user.role === "ADMIN" || user.role === "REVIEWER").map((user) =>
+      notificationRepository.create({
+        userId: user.id,
+        title: "New submission",
+        message: `${submission.fullName} submitted a ${submission.category} challenge`,
+        type: "NEW_SUBMISSION",
+      }),
+    ),
+  );
 
   res.status(201).json({ success: true, data: submission });
 });
 
-submissionsRouter.get("/:submissionId", authenticate, (req, res) => {
-  const submission = submissionRepository.findById(req.params.submissionId);
+submissionsRouter.get("/:submissionId", authenticate, async (req, res) => {
+  const submission = await submissionRepository.findById(req.params.submissionId);
   if (!submission) {
     res.status(404).json({ success: false, error: "Submission not found" });
     return;
@@ -61,8 +64,8 @@ submissionsRouter.get("/:submissionId", authenticate, (req, res) => {
   res.json({ success: true, data: submission });
 });
 
-submissionsRouter.get("/", authenticate, authorize("ADMIN", "REVIEWER"), validateQuery(listSubmissionsQuerySchema), (req, res) => {
-  let submissions = submissionRepository.list();
+submissionsRouter.get("/", authenticate, authorize("ADMIN", "REVIEWER"), validateQuery(listSubmissionsQuerySchema), async (req, res) => {
+  let submissions = await submissionRepository.list();
 
   if (req.query.cohort) {
     submissions = submissions.filter((item) => item.cohortId === req.query.cohort);
@@ -84,26 +87,26 @@ submissionsRouter.get("/", authenticate, authorize("ADMIN", "REVIEWER"), validat
   res.json({ success: true, data: submissions });
 });
 
-submissionsRouter.patch("/:submissionId/accept", authenticate, authorize("ADMIN"), (req, res) => {
-  const submission = submissionRepository.findById(req.params.submissionId);
+submissionsRouter.patch("/:submissionId/accept", authenticate, authorize("ADMIN"), async (req, res) => {
+  const submission = await submissionRepository.findById(req.params.submissionId);
   if (!submission) {
     res.status(404).json({ success: false, error: "Submission not found" });
     return;
   }
 
   submission.status = "accepted";
-  submissionRepository.update(submission);
+  await submissionRepository.update(submission);
   res.json({ success: true, data: submission });
 });
 
-submissionsRouter.patch("/:submissionId/reject", authenticate, authorize("ADMIN"), (req, res) => {
-  const submission = submissionRepository.findById(req.params.submissionId);
+submissionsRouter.patch("/:submissionId/reject", authenticate, authorize("ADMIN"), async (req, res) => {
+  const submission = await submissionRepository.findById(req.params.submissionId);
   if (!submission) {
     res.status(404).json({ success: false, error: "Submission not found" });
     return;
   }
 
   submission.status = "rejected";
-  submissionRepository.update(submission);
+  await submissionRepository.update(submission);
   res.json({ success: true, data: submission });
 });

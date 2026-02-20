@@ -13,8 +13,9 @@ RUN pnpm install --frozen-lockfile
 
 FROM backend-deps AS backend-build
 COPY backend/tsconfig.json ./tsconfig.json
+COPY backend/prisma ./prisma
 COPY backend/src ./src
-RUN pnpm run build
+RUN pnpm prisma generate && pnpm run build
 
 FROM base AS backend-prod-deps
 WORKDIR /app/backend
@@ -26,7 +27,9 @@ ENV NODE_ENV=production
 WORKDIR /app/backend
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 COPY --from=backend-prod-deps --chown=appuser:appgroup /app/backend/node_modules ./node_modules
+COPY --from=backend-build --chown=appuser:appgroup /app/backend/node_modules/.prisma ./node_modules/.prisma
 COPY --from=backend-build --chown=appuser:appgroup /app/backend/dist ./dist
+COPY --from=backend-build --chown=appuser:appgroup /app/backend/prisma ./prisma
 COPY --from=backend-build --chown=appuser:appgroup /app/backend/package.json ./package.json
 EXPOSE 4000
 USER appuser
