@@ -25,12 +25,12 @@ const issueTokens = (user: User): Tokens => {
 };
 
 export const signupIntern = async (input: { fullName: string; email: string; password: string }) => {
-  const existing = userRepository.findByEmail(input.email);
+  const existing = await userRepository.findByEmail(input.email);
   if (existing) {
     throw new Error("Email already registered");
   }
 
-  const user = userRepository.create({
+  const user = await userRepository.create({
     fullName: input.fullName,
     email: input.email,
     passwordHash: await hashPassword(input.password),
@@ -40,21 +40,23 @@ export const signupIntern = async (input: { fullName: string; email: string; pas
     approvedByAdmin: false,
   });
 
-  const admins = userRepository.list().filter((item) => item.role === "ADMIN");
-  admins.forEach((admin) => {
-    notificationRepository.create({
-      userId: admin.id,
-      title: "New user signup",
-      message: `${user.fullName} registered and is waiting for approval`,
-      type: "NEW_USER_REGISTERED",
-    });
-  });
+  const admins = (await userRepository.list()).filter((item) => item.role === "ADMIN");
+  await Promise.all(
+    admins.map((admin) =>
+      notificationRepository.create({
+        userId: admin.id,
+        title: "New user signup",
+        message: `${user.fullName} registered and is waiting for approval`,
+        type: "NEW_USER_REGISTERED",
+      }),
+    ),
+  );
 
   return { success: true, data: toAuthUser(user) };
 };
 
 export const loginUser = async (input: { email: string; password: string }) => {
-  const user = userRepository.findByEmail(input.email);
+  const user = await userRepository.findByEmail(input.email);
   if (!user) {
     throw new Error("Invalid credentials");
   }
@@ -71,18 +73,18 @@ export const loginUser = async (input: { email: string; password: string }) => {
   const tokens = issueTokens(user);
   user.lastLoginAt = new Date().toISOString();
   user.refreshToken = tokens.refreshToken;
-  userRepository.update(user);
+  await userRepository.update(user);
 
   return { success: true, data: { ...tokens, user: toAuthUser(user) } };
 };
 
-export const refreshUserSession = (refreshToken: string) => {
+export const refreshUserSession = async (refreshToken: string) => {
   if (db.revokedRefreshTokens.includes(refreshToken)) {
     throw new Error("Refresh token has been revoked");
   }
 
   const payload = verifyRefreshToken(refreshToken);
-  const user = userRepository.findById(payload.userId);
+  const user = await userRepository.findById(payload.userId);
 
   if (!user || !user.refreshToken || user.refreshToken !== refreshToken) {
     throw new Error("Invalid refresh token");
@@ -91,13 +93,13 @@ export const refreshUserSession = (refreshToken: string) => {
   const tokens = issueTokens(user);
   db.revokedRefreshTokens.push(refreshToken);
   user.refreshToken = tokens.refreshToken;
-  userRepository.update(user);
+  await userRepository.update(user);
 
   return { success: true, data: tokens };
 };
 
-export const logoutUser = (userId: string) => {
-  const user = userRepository.findById(userId);
+export const logoutUser = async (userId: string) => {
+  const user = await userRepository.findById(userId);
   if (!user) {
     throw new Error("User not found");
   }
@@ -107,6 +109,6 @@ export const logoutUser = (userId: string) => {
   }
 
   user.refreshToken = null;
-  userRepository.update(user);
+  await userRepository.update(user);
   return { success: true, data: { message: "Logged out" } };
 };

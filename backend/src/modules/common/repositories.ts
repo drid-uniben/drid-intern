@@ -446,7 +446,7 @@ export const auditRepository = {
         action: payload.action,
         entityType: payload.entityType,
         entityId: payload.entityId,
-        metadata: payload.metadata,
+        metadata: payload.metadata as Prisma.InputJsonValue,
       },
     });
 

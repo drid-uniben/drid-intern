@@ -10,22 +10,24 @@ import { createInvitationsSchema } from "./invitations.schemas";
 
 export const invitationsRouter = Router();
 
-invitationsRouter.post("/", authenticate, authorize("ADMIN"), validateBody(createInvitationsSchema), (req, res) => {
-  const cohort = cohortRepository.findById(req.body.cohortId);
+invitationsRouter.post("/", authenticate, authorize("ADMIN"), validateBody(createInvitationsSchema), async (req, res) => {
+  const cohort = await cohortRepository.findById(req.body.cohortId);
   if (!cohort) {
     res.status(404).json({ success: false, error: "Cohort not found" });
     return;
   }
 
   const expiresAt = new Date(Date.now() + req.body.expiresInDays * 24 * 60 * 60 * 1000).toISOString();
-  const invitations: Invitation[] = req.body.emails.map((email: string) =>
-    invitationRepository.create({
-      email,
-      cohortId: req.body.cohortId,
-      category: req.body.category,
-      token: crypto.randomBytes(24).toString("hex"),
-      expiresAt,
-    }),
+  const invitations: Invitation[] = await Promise.all(
+    req.body.emails.map((email: string) =>
+      invitationRepository.create({
+        email,
+        cohortId: req.body.cohortId,
+        category: req.body.category,
+        token: crypto.randomBytes(24).toString("hex"),
+        expiresAt,
+      }),
+    ),
   );
 
   void Promise.all(
@@ -46,8 +48,8 @@ invitationsRouter.post("/", authenticate, authorize("ADMIN"), validateBody(creat
   res.status(201).json({ success: true, data: invitations });
 });
 
-invitationsRouter.get("/:token", (req, res) => {
-  const invitation = invitationRepository.findByToken(req.params.token);
+invitationsRouter.get("/:token", async (req, res) => {
+  const invitation = await invitationRepository.findByToken(req.params.token);
   if (!invitation) {
     res.status(404).json({ success: false, error: "Invitation not found" });
     return;
@@ -58,7 +60,7 @@ invitationsRouter.get("/:token", (req, res) => {
     return;
   }
 
-  const cohort = cohortRepository.findById(invitation.cohortId);
+  const cohort = await cohortRepository.findById(invitation.cohortId);
   res.json({
     success: true,
     data: {
@@ -70,8 +72,8 @@ invitationsRouter.get("/:token", (req, res) => {
   });
 });
 
-invitationsRouter.post("/:invitationId/resend", authenticate, authorize("ADMIN"), (req, res) => {
-  const invitation = invitationRepository.findById(req.params.invitationId);
+invitationsRouter.post("/:invitationId/resend", authenticate, authorize("ADMIN"), async (req, res) => {
+  const invitation = await invitationRepository.findById(req.params.invitationId);
   if (!invitation) {
     res.status(404).json({ success: false, error: "Invitation not found" });
     return;

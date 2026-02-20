@@ -6,8 +6,8 @@ import { createCohortSchema, updateCohortSchema, updateStatusSchema } from "./co
 
 export const cohortsRouter = Router();
 
-cohortsRouter.get("/active", (_req, res) => {
-  const active = cohortRepository.findActive();
+cohortsRouter.get("/active", async (_req, res) => {
+  const active = await cohortRepository.findActive();
   if (!active) {
     res.status(404).json({ success: false, error: "No active cohort" });
     return;
@@ -16,12 +16,12 @@ cohortsRouter.get("/active", (_req, res) => {
   res.json({ success: true, data: active });
 });
 
-cohortsRouter.get("/", authenticate, authorize("ADMIN"), (_req, res) => {
-  res.json({ success: true, data: cohortRepository.list() });
+cohortsRouter.get("/", authenticate, authorize("ADMIN"), async (_req, res) => {
+  res.json({ success: true, data: await cohortRepository.list() });
 });
 
-cohortsRouter.get("/:cohortId", (req, res) => {
-  const cohort = cohortRepository.findById(req.params.cohortId);
+cohortsRouter.get("/:cohortId", async (req, res) => {
+  const cohort = await cohortRepository.findById(req.params.cohortId);
   if (!cohort) {
     res.status(404).json({ success: false, error: "Cohort not found" });
     return;
@@ -30,8 +30,8 @@ cohortsRouter.get("/:cohortId", (req, res) => {
   res.json({ success: true, data: cohort });
 });
 
-cohortsRouter.post("/", authenticate, authorize("ADMIN"), validateBody(createCohortSchema), (req, res) => {
-  const cohort = cohortRepository.create({
+cohortsRouter.post("/", authenticate, authorize("ADMIN"), validateBody(createCohortSchema), async (req, res) => {
+  const cohort = await cohortRepository.create({
     year: req.body.year,
     cohortNumber: req.body.cohortNumber,
     deadlineAt: req.body.deadlineAt,
@@ -42,8 +42,8 @@ cohortsRouter.post("/", authenticate, authorize("ADMIN"), validateBody(createCoh
   res.status(201).json({ success: true, data: cohort });
 });
 
-cohortsRouter.patch("/:cohortId", authenticate, authorize("ADMIN"), validateBody(updateCohortSchema), (req, res) => {
-  const cohort = cohortRepository.findById(req.params.cohortId);
+cohortsRouter.patch("/:cohortId", authenticate, authorize("ADMIN"), validateBody(updateCohortSchema), async (req, res) => {
+  const cohort = await cohortRepository.findById(req.params.cohortId);
   if (!cohort) {
     res.status(404).json({ success: false, error: "Cohort not found" });
     return;
@@ -54,26 +54,26 @@ cohortsRouter.patch("/:cohortId", authenticate, authorize("ADMIN"), validateBody
   if (req.body.deadlineAt !== undefined) cohort.deadlineAt = req.body.deadlineAt;
   if (req.body.allowedCategories !== undefined) cohort.allowedCategories = req.body.allowedCategories;
 
-  cohortRepository.update(cohort);
+  await cohortRepository.update(cohort);
   res.json({ success: true, data: cohort });
 });
 
-cohortsRouter.patch("/:cohortId/status", authenticate, authorize("ADMIN"), validateBody(updateStatusSchema), (req, res) => {
-  const cohort = cohortRepository.findById(req.params.cohortId);
+cohortsRouter.patch("/:cohortId/status", authenticate, authorize("ADMIN"), validateBody(updateStatusSchema), async (req, res) => {
+  const cohort = await cohortRepository.findById(req.params.cohortId);
   if (!cohort) {
     res.status(404).json({ success: false, error: "Cohort not found" });
     return;
   }
 
   if (req.body.status === "ACTIVE") {
-    const active = cohortRepository.findActive();
+    const active = await cohortRepository.findActive();
     if (active && active.id !== cohort.id) {
       active.status = "CLOSED";
-      cohortRepository.update(active);
+      await cohortRepository.update(active);
     }
   }
 
   cohort.status = req.body.status;
-  cohortRepository.update(cohort);
+  await cohortRepository.update(cohort);
   res.json({ success: true, data: cohort });
 });
