@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { UserRole } from "@/types/domain";
 
@@ -12,6 +12,7 @@ interface RouteGuardProps {
 export function RouteGuard({ allowedRoles, children }: RouteGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
@@ -24,8 +25,16 @@ export function RouteGuard({ allowedRoles, children }: RouteGuardProps) {
 
     if (allowedRoles && (!userRole || !allowedRoles.includes(userRole))) {
       router.replace("/403");
+      return;
     }
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsAuthorized(true);
   }, [allowedRoles, pathname, router]);
+
+  if (!isAuthorized) {
+    return null;
+  }
 
   return <>{children}</>;
 }

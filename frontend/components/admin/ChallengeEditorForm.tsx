@@ -1,36 +1,86 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { AnimatePresence } from "motion/react";
+import * as m from "motion/react-m";
 import { apiGet, apiPatch } from "@/lib/api";
 import { Challenge } from "@/types/domain";
+import { CardSkeleton } from "@/components/ui/LoadingSkeleton";
 
 export function ChallengeEditorForm({ challengeId }: { challengeId: string }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [message, setMessage] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  useEffect(() => {
-    apiGet<Challenge>(`/challenges/${challengeId}`).then((result) => {
+  const { isLoading } = useQuery({
+    queryKey: ["challenge", challengeId],
+    queryFn: async () => {
+      const result = await apiGet<Challenge>(`/challenges/${challengeId}`);
       if (result.success && result.data) {
         setTitle(result.data.title);
         setDescription(result.data.description);
+        return result.data;
       }
-    });
-  }, [challengeId]);
+      return null;
+    },
+  });
 
-  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const token = localStorage.getItem("accessToken") ?? undefined;
+      return apiPatch<Challenge>(`/challenges/${challengeId}`, { title, description }, token);
+    },
+    onSuccess: (result) => {
+      if (result.success) {
+        setMessage("Challenge updated with new version! ✅");
+        setIsSuccess(true);
+      } else {
+        setMessage(result.error ?? "Failed to update challenge");
+        setIsSuccess(false);
+      }
+    },
+  });
+
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const token = localStorage.getItem("accessToken") ?? undefined;
-    const result = await apiPatch<Challenge>(`/challenges/${challengeId}`, { title, description }, token);
-    setMessage(result.success ? "Challenge updated with new version." : result.error ?? "Failed to update challenge");
+    setMessage(null);
+    mutation.mutate();
   };
 
+  if (isLoading) return <CardSkeleton />;
+
   return (
-    <form className="space-y-3" onSubmit={onSubmit}>
-      <input className="w-full rounded border border-slate-300 p-2" value={title} onChange={(event) => setTitle(event.target.value)} required />
-      <textarea className="w-full rounded border border-slate-300 p-2" rows={12} value={description} onChange={(event) => setDescription(event.target.value)} required />
-      <button className="rounded bg-slate-900 px-4 py-2 text-white" type="submit">Save challenge</button>
-      {message ? <p className="text-sm">{message}</p> : null}
+    <form className="space-y-4" onSubmit={onSubmit}>
+      <div>
+        <label htmlFor="editor-title" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Title</label>
+        <input id="editor-title" className="input-glass" value={title} onChange={(e) => setTitle(e.target.value)} required />
+      </div>
+      <div>
+        <label htmlFor="editor-desc" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Description</label>
+        <textarea id="editor-desc" className="input-glass" rows={12} value={description} onChange={(e) => setDescription(e.target.value)} required style={{ resize: "vertical" }} />
+      </div>
+      <button className="btn-gradient" type="submit" disabled={mutation.isPending}>
+        {mutation.isPending ? "Saving..." : "Save challenge"}
+      </button>
+
+      <AnimatePresence>
+        {message && (
+          <m.p
+            className="text-sm rounded-lg p-3"
+            style={{
+              background: isSuccess ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)",
+              color: isSuccess ? "var(--success-color)" : "var(--error-color)",
+            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {message}
+          </m.p>
+        )}
+      </AnimatePresence>
     </form>
   );
 }

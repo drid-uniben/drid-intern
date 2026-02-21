@@ -93,6 +93,9 @@ const refreshSession = async (): Promise<boolean> => {
   const result = await parseJson<RefreshResponse>(response);
   if (!result.success || !result.data) {
     clearTokens();
+    if (typeof window !== "undefined") {
+      window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`;
+    }
     return false;
   }
 
@@ -149,6 +152,12 @@ export const apiPost = async <T>(path: string, payload: unknown, token?: string)
       },
       body: JSON.stringify(payload),
     });
+
+    if (response.status === 401 && typeof window !== "undefined") {
+      clearTokens();
+      window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`;
+    }
+
     return parseJson<T>(response);
   }
 
@@ -173,6 +182,12 @@ export const apiPatch = async <T>(path: string, payload: unknown, token?: string
       },
       body: JSON.stringify(payload),
     });
+
+    if (response.status === 401 && typeof window !== "undefined") {
+      clearTokens();
+      window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`;
+    }
+
     return parseJson<T>(response);
   }
 

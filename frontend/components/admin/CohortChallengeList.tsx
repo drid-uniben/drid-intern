@@ -1,36 +1,48 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import * as m from "motion/react-m";
 import { apiGet } from "@/lib/api";
 import { Challenge } from "@/types/domain";
+import { useAuthToken } from "@/hooks/useAuth";
+import { ListSkeleton } from "@/components/ui/LoadingSkeleton";
 
 export function CohortChallengeList({ cohortId }: { cohortId: string }) {
-  const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const token = useAuthToken();
 
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken") ?? undefined;
-    apiGet<Challenge[]>(`/challenges?cohortId=${cohortId}`, token).then((result) => {
-      if (result.success && result.data) {
-        setChallenges(result.data);
-      }
-    });
-  }, [cohortId]);
+  const { data: challenges = [], isLoading } = useQuery({
+    queryKey: ["admin-challenges", cohortId],
+    queryFn: async () => {
+      const result = await apiGet<Challenge[]>(`/challenges?cohortId=${cohortId}`, token);
+      return result.success && result.data ? result.data : [];
+    },
+  });
+
+  if (isLoading) return <ListSkeleton count={2} />;
 
   if (challenges.length === 0) {
-    return <p className="text-sm text-slate-600">No challenges created yet for this cohort.</p>;
+    return <p className="text-sm" style={{ color: "var(--text-muted)" }}>No challenges created yet for this cohort.</p>;
   }
 
   return (
-    <div className="space-y-2">
-      {challenges.map((challenge) => (
-        <div key={challenge.id} className="flex items-center justify-between rounded border border-slate-300 bg-white p-3">
+    <div className="space-y-3">
+      {challenges.map((challenge, i) => (
+        <m.div
+          key={challenge.id}
+          className="glass rounded-xl p-4 flex items-center justify-between"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: i * 0.05 }}
+        >
           <div>
             <p className="font-semibold capitalize">{challenge.category}</p>
-            <p className="text-sm text-slate-600">{challenge.title}</p>
+            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>{challenge.title}</p>
           </div>
-          <Link className="rounded border border-slate-300 px-3 py-2 text-sm" href={`/admin/challenges/${challenge.id}/edit`}>Edit</Link>
-        </div>
+          <Link className="btn-glass !py-1.5 !px-3 !text-sm !rounded-lg" href={`/admin/challenges/${challenge.id}/edit`}>
+            Edit
+          </Link>
+        </m.div>
       ))}
     </div>
   );

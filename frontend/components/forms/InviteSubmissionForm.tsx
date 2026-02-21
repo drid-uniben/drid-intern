@@ -1,73 +1,171 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useReducer } from "react";
 import { useRouter } from "next/navigation";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { AnimatePresence } from "motion/react";
+import * as m from "motion/react-m";
 import { apiGet, apiPost } from "@/lib/api";
 import { InvitationValidation } from "@/types/domain";
+import { ListSkeleton } from "@/components/ui/LoadingSkeleton";
+
+interface State {
+  fullName: string;
+  email: string;
+  githubUrl: string;
+  deploymentUrl: string;
+  figmaUrl: string;
+  message: string;
+  category: string;
+  error: string | null;
+}
+
+type Action =
+  | { type: "SET_FIELD"; field: keyof Omit<State, "error">; value: string }
+  | { type: "ERROR"; error: string }
+  | { type: "CLEAR_ERROR" };
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "SET_FIELD":
+      return { ...state, [action.field]: action.value };
+    case "ERROR":
+      return { ...state, error: action.error };
+    case "CLEAR_ERROR":
+      return { ...state, error: null };
+    default:
+      return state;
+  }
+}
 
 export function InviteSubmissionForm({ token }: { token: string }) {
   const router = useRouter();
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [githubUrl, setGithubUrl] = useState("");
-  const [deploymentUrl, setDeploymentUrl] = useState("");
-  const [figmaUrl, setFigmaUrl] = useState("");
-  const [message, setMessage] = useState("");
-  const [category, setCategory] = useState<string>("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [state, dispatch] = useReducer(reducer, {
+    fullName: "",
+    email: "",
+    githubUrl: "",
+    deploymentUrl: "",
+    figmaUrl: "",
+    message: "",
+    category: "",
+    error: null,
+  });
 
-  useEffect(() => {
-    apiGet<InvitationValidation>(`/invitations/${token}`).then((result) => {
+  const { isLoading: validating } = useQuery({
+    queryKey: ["invitation", token],
+    queryFn: async () => {
+      const result = await apiGet<InvitationValidation>(`/invitations/${token}`);
       if (result.success && result.data) {
-        setEmail(result.data.email);
-        setCategory(result.data.category);
+        dispatch({ type: "SET_FIELD", field: "email", value: result.data.email });
+        dispatch({ type: "SET_FIELD", field: "category", value: result.data.category });
+        return result.data;
       }
-    });
-  }, [token]);
+      return null;
+    },
+  });
 
-  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const submitMutation = useMutation({
+    mutationFn: async () => {
+      return apiPost("/submissions", {
+        invitationToken: token,
+        fullName: state.fullName,
+        email: state.email,
+        githubUrl: state.githubUrl || undefined,
+        deploymentUrl: state.deploymentUrl || undefined,
+        figmaUrl: state.figmaUrl || undefined,
+        message: state.message,
+      });
+    },
+    onSuccess: (result) => {
+      if (!result.success) {
+        dispatch({ type: "ERROR", error: result.error ?? "Submission failed" });
+        return;
+      }
+      router.push(`/invite/${token}/success`);
+    },
+    onError: () => {
+      dispatch({ type: "ERROR", error: "An unexpected error occurred." });
+    },
+  });
+
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    const result = await apiPost("/submissions", {
-      invitationToken: token,
-      fullName,
-      email,
-      githubUrl: githubUrl || undefined,
-      deploymentUrl: deploymentUrl || undefined,
-      figmaUrl: figmaUrl || undefined,
-      message,
-    });
-
-    setLoading(false);
-
-    if (!result.success) {
-      setError(result.error ?? "Submission failed");
-      return;
-    }
-
-    router.push(`/invite/${token}/success`);
+    dispatch({ type: "CLEAR_ERROR" });
+    submitMutation.mutate();
   };
 
-  const isDesign = category === "design";
+  if (validating) {
+    return <ListSkeleton count={4} />;
+  }
+
+  const isDesign = state.category === "design";
 
   return (
-    <form className="space-y-3" onSubmit={onSubmit}>
-      <input className="w-full rounded border border-slate-300 p-2" placeholder="Full name" value={fullName} onChange={(event) => setFullName(event.target.value)} required />
-      <input className="w-full rounded border border-slate-300 p-2" placeholder="Email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+    <form className="space-y-4" onSubmit={onSubmit}>
+      <div>
+        <label htmlFor="invite-name" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Full name</label>
+        <input id="invite-name" className="input-glass" placeholder="John Doe" value={state.fullName} onChange={(e) => dispatch({ type: "SET_FIELD", field: "fullName", value: e.target.value })} required />
+      </div>
+      <div>
+        <label htmlFor="invite-email" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Email</label>
+        <input id="invite-email" className="input-glass" placeholder="you@example.com" type="email" value={state.email} onChange={(e) => dispatch({ type: "SET_FIELD", field: "email", value: e.target.value })} required />
+      </div>
+
       {isDesign ? (
-        <input className="w-full rounded border border-slate-300 p-2" placeholder="Figma URL" type="url" value={figmaUrl} onChange={(event) => setFigmaUrl(event.target.value)} required />
+        <div>
+          <label htmlFor="invite-figma" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Figma URL</label>
+          <input id="invite-figma" className="input-glass" placeholder="https://figma.com/..." type="url" value={state.figmaUrl} onChange={(e) => dispatch({ type: "SET_FIELD", field: "figmaUrl", value: e.target.value })} required />
+        </div>
       ) : (
         <>
-          <input className="w-full rounded border border-slate-300 p-2" placeholder="GitHub repo URL" type="url" value={githubUrl} onChange={(event) => setGithubUrl(event.target.value)} required />
-          <input className="w-full rounded border border-slate-300 p-2" placeholder="Deployment URL" type="url" value={deploymentUrl} onChange={(event) => setDeploymentUrl(event.target.value)} required />
+          <div>
+            <label htmlFor="invite-github" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>GitHub repo URL</label>
+            <input id="invite-github" className="input-glass" placeholder="https://github.com/..." type="url" value={state.githubUrl} onChange={(e) => dispatch({ type: "SET_FIELD", field: "githubUrl", value: e.target.value })} required />
+          </div>
+          <div>
+            <label htmlFor="invite-deploy" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Deployment URL</label>
+            <input id="invite-deploy" className="input-glass" placeholder="https://your-app.vercel.app" type="url" value={state.deploymentUrl} onChange={(e) => dispatch({ type: "SET_FIELD", field: "deploymentUrl", value: e.target.value })} required />
+          </div>
         </>
       )}
-      <textarea className="w-full rounded border border-slate-300 p-2" placeholder="Message to reviewers" value={message} onChange={(event) => setMessage(event.target.value)} rows={5} />
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
-      <button className="rounded bg-slate-900 px-4 py-2 text-white" disabled={loading} type="submit">{loading ? "Submitting..." : "Submit challenge"}</button>
+
+      <div>
+        <label htmlFor="invite-message" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Message to reviewers</label>
+        <textarea
+          id="invite-message"
+          className="input-glass"
+          placeholder="Tell us about your approach..."
+          value={state.message}
+          onChange={(e) => dispatch({ type: "SET_FIELD", field: "message", value: e.target.value })}
+          rows={5}
+          style={{ resize: "vertical" }}
+        />
+      </div>
+
+      <AnimatePresence>
+        {state.error && (
+          <m.p
+            className="text-sm rounded-lg p-3"
+            style={{ background: "rgba(239,68,68,0.1)", color: "var(--error-color)" }}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+          >
+            {state.error}
+          </m.p>
+        )}
+      </AnimatePresence>
+
+      <button className="btn-gradient w-full" disabled={submitMutation.isPending} type="submit">
+        {submitMutation.isPending ? (
+          <span className="flex items-center justify-center gap-2">
+            <span style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", animation: "spin 0.6s linear infinite" }} />
+            Submitting...
+          </span>
+        ) : (
+          "Submit challenge"
+        )}
+      </button>
     </form>
   );
 }

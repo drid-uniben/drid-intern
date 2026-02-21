@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import { apiGet } from "@/lib/api";
 import { Challenge } from "@/types/domain";
+import { BackButton } from "@/components/ui/BackButton";
+
+export const metadata: Metadata = {
+  title: "Challenge Details — DRID Internship",
+  description: "View challenge details and submission instructions.",
+};
 
 export default async function ChallengeDetailPage({ params }: { params: Promise<{ category: string }> }) {
   const resolved = await params;
@@ -9,14 +16,32 @@ export default async function ChallengeDetailPage({ params }: { params: Promise<
     : undefined;
 
   if (!challenge) {
-    return <main className="mx-auto max-w-3xl px-6 py-12">Challenge not found.</main>;
+    return (
+      <main className="mx-auto max-w-3xl px-6 py-12">
+        <BackButton fallbackHref="/cohort/current/challenges" />
+        <div className="glass rounded-2xl p-8 text-center" style={{ animation: "slideUp 0.5s ease-out" }}>
+          <p className="text-xl font-semibold">Challenge not found.</p>
+        </div>
+      </main>
+    );
   }
 
   return (
-    <main className="mx-auto max-w-3xl space-y-4 px-6 py-12">
-      <h1 className="text-3xl font-bold capitalize">{challenge.category} Challenge</h1>
-      <p className="text-lg font-semibold">{challenge.title}</p>
-      <article className="whitespace-pre-wrap text-slate-700">{challenge.description}</article>
+    <main className="mx-auto max-w-3xl space-y-6 px-6 py-12">
+      <BackButton fallbackHref="/cohort/current/challenges" />
+      <div className="glass rounded-3xl p-8" style={{ animation: "slideUp 0.5s ease-out" }}>
+        <span className="badge badge-accent">{challenge.category}</span>
+        <h1 className="mt-3 text-3xl font-bold capitalize gradient-text">
+          {challenge.category} Challenge
+        </h1>
+        <p className="mt-2 text-lg font-semibold">{challenge.title}</p>
+      </div>
+      <article
+        className="glass rounded-2xl p-6 whitespace-pre-wrap leading-relaxed"
+        style={{ color: "var(--text-secondary)", animation: "slideUp 0.5s ease-out 0.2s both" }}
+      >
+        {challenge.description}
+      </article>
     </main>
   );
 }

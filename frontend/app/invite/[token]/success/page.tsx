@@ -1,8 +1,22 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Submission Received — DRID Internship",
+  description: "Your challenge submission has been received successfully.",
+};
+
 export default async function InviteSuccessPage() {
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <h1 className="text-3xl font-bold">Submission received</h1>
-      <p className="mt-3 text-slate-600">Your challenge submission has been recorded successfully. Review updates will be communicated by DRID.</p>
+    <main className="min-h-[70vh] flex items-center justify-center px-6">
+      <div className="glass rounded-3xl p-10 text-center max-w-md" style={{ animation: "slideUp 0.5s ease-out" }}>
+        <p className="text-5xl">🎉</p>
+        <h1 className="mt-4 text-3xl font-bold gradient-text">Submission Received!</h1>
+        <p className="mt-3" style={{ color: "var(--text-secondary)" }}>
+          Your challenge submission has been recorded successfully. Review updates will be communicated by DRID.
+        </p>
+        <Link href="/" className="btn-gradient mt-6 inline-flex">Back to home</Link>
+      </div>
     </main>
   );
 }
