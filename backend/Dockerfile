@@ -19,7 +19,6 @@ RUN pnpm prisma generate && pnpm run build
 FROM base AS prod-deps
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --prod --frozen-lockfile
-COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
 
 FROM node:22-alpine AS runner
 WORKDIR /app
