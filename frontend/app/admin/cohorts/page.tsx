@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { CohortList } from "@/components/admin/CohortList";
+
+export const metadata: Metadata = {
+  title: "Manage Cohorts — DRID Internship",
+  description: "View, update, and manage internship cohorts.",
+};
 
 export default function AdminCohortsPage() {
   return (

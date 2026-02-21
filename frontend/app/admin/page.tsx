@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Admin Dashboard — DRID Internship",
+  description: "Overview of application administration and management.",
+};
 
 export default function AdminDashboardPage() {
   const cards = [

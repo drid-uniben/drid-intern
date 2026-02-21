@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import { CreateCohortForm } from "@/components/admin/CreateCohortForm";
 import { BackButton } from "@/components/ui/BackButton";
+
+export const metadata: Metadata = {
+  title: "Create Cohort — DRID Internship",
+  description: "Set up a new internship cohort.",
+};
 
 export default function AdminCreateCohortPage() {
   return (

@@ -52,7 +52,7 @@ function Separator({ index }: { index: number }) {
 }
 
 export default function CountdownTimer({ deadlineAt }: { deadlineAt: string }) {
-  const [time, setTime] = useState<TimeLeft>(calcTimeLeft(deadlineAt));
+  const [time, setTime] = useState<TimeLeft>(() => calcTimeLeft(deadlineAt));
 
   useEffect(() => {
     const id = setInterval(() => setTime(calcTimeLeft(deadlineAt)), 1000);
