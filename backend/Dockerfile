@@ -29,4 +29,4 @@ COPY --from=prod-deps --chown=appuser:appgroup /app/prisma ./prisma
 COPY --from=prod-deps --chown=appuser:appgroup /app/package.json ./package.json
 EXPOSE 4000
 USER appuser
-CMD ["sh", "-c", "pnpm prisma migrate deploy && node dist/index.js"]
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/index.js"]
