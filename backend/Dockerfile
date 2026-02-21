@@ -18,7 +18,6 @@ RUN pnpm prisma generate
 RUN pnpm run build
 
 FROM build AS prod-deps
-RUN pnpm prune --prod
 
 FROM node:22-alpine AS runner
 WORKDIR /app
@@ -30,4 +29,4 @@ COPY --from=prod-deps --chown=appuser:appgroup /app/prisma ./prisma
 COPY --from=prod-deps --chown=appuser:appgroup /app/package.json ./package.json
 EXPOSE 4000
 USER appuser
-CMD ["node", "dist/index.js"]
+CMD ["sh", "-c", "pnpm prisma migrate deploy && node dist/index.js"]
