@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
 export function BackButton({ fallbackHref = "/" }: { fallbackHref?: string }) {
@@ -9,7 +8,13 @@ export function BackButton({ fallbackHref = "/" }: { fallbackHref?: string }) {
 
   return (
     <button
-      onClick={() => router.back()}
+      onClick={() => {
+        if (typeof window !== 'undefined' && window.history.length > 2) {
+          router.back();
+        } else {
+          router.push(fallbackHref);
+        }
+      }}
       className="inline-flex items-center gap-2 text-sm font-medium transition-colors hover:opacity-80 mb-6"
       style={{ color: "var(--text-secondary)" }}
     >

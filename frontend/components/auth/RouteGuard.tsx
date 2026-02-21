@@ -28,6 +28,7 @@ export function RouteGuard({ allowedRoles, children }: RouteGuardProps) {
       return;
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsAuthorized(true);
   }, [allowedRoles, pathname, router]);
 
