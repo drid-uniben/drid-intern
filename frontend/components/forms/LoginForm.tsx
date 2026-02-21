@@ -1,9 +1,10 @@
 "use client";
 
-import { FormEvent, useReducer } from "react";
+import { FormEvent, useReducer, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { apiPost } from "@/lib/api";
 
 interface LoginResponse {
@@ -44,6 +45,7 @@ function reducer(state: State, action: Action): State {
 
 export function LoginForm() {
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
   const [state, dispatch] = useReducer(reducer, {
     email: "",
     password: "",
@@ -92,15 +94,26 @@ export function LoginForm() {
         <label htmlFor="login-password" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>
           Password
         </label>
-        <input
-          id="login-password"
-          className="input-glass"
-          placeholder="••••••••"
-          type="password"
-          value={state.password}
-          onChange={(e) => dispatch({ type: "SET_FIELD", field: "password", value: e.target.value })}
-          required
-        />
+        <div className="relative">
+          <input
+            id="login-password"
+            className="input-glass pr-10"
+            placeholder="••••••••"
+            type={showPassword ? "text" : "password"}
+            value={state.password}
+            onChange={(e) => dispatch({ type: "SET_FIELD", field: "password", value: e.target.value })}
+            required
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((value) => !value)}
+            className="absolute right-3 top-1/2 -translate-y-1/2"
+            style={{ color: "var(--text-secondary)" }}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       <AnimatePresence>
