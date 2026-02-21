@@ -6,13 +6,13 @@
 FROM node:22-alpine AS base
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
+WORKDIR /app
 RUN corepack enable
 
 ##############################
 # Dependencies (dev + prod)
 ##############################
 FROM base AS deps
-WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
@@ -20,19 +20,17 @@ RUN pnpm install --frozen-lockfile
 # Build stage (TypeScript + Prisma)
 ##############################
 FROM deps AS build
-WORKDIR /app
 COPY tsconfig.json ./
 COPY prisma ./prisma
 COPY src ./src
 
-# Generate Prisma client and build TypeScript
-RUN pnpm prisma generate && pnpm run build
+# Generate Prisma client into node_modules/.prisma and build TypeScript
+RUN pnpm prisma generate --client-output ./node_modules/.prisma && pnpm run build
 
 ##############################
 # Production dependencies
 ##############################
 FROM base AS prod-deps
-WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --prod --frozen-lockfile
 
