@@ -3,6 +3,7 @@ import cors from "cors";
 import express, { Request, Response } from "express";
 import { env } from "./config/env";
 import { errorHandler, notFound } from "./middleware/error";
+import { requestLogger } from "./middleware/requestLogger";
 import { adminRouter } from "./modules/admin/admin.controller";
 import { authRouter } from "./modules/auth/auth.controller";
 import { challengesRouter } from "./modules/challenges/challenges.controller";
@@ -19,6 +20,7 @@ export const app = express();
 app.use(cors({ origin: env.FRONTEND_URL, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
+app.use(requestLogger);
 
 app.get("/api/v1/health", (_req: Request, res: Response) => {
   res.json({ success: true, data: { status: "ok" } });
