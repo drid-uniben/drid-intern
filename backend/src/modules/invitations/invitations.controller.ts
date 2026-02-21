@@ -5,7 +5,7 @@ import { env } from "../../config/env";
 import { validateBody } from "../../middleware/validate";
 import { emailService } from "../../services/email.service";
 import { Invitation } from "../../types/domain";
-import { cohortRepository, invitationRepository } from "../common/repositories";
+import { challengeCategoryRepository, cohortRepository, invitationRepository } from "../common/repositories";
 import { createInvitationsSchema } from "./invitations.schemas";
 
 export const invitationsRouter = Router();
@@ -22,13 +22,20 @@ invitationsRouter.post("/", authenticate, authorize("ADMIN"), validateBody(creat
     return;
   }
 
+  const category = req.body.category.trim().toLowerCase();
+  const activeCategories = await challengeCategoryRepository.listActive();
+  if (!activeCategories.some((item) => item.name === category)) {
+    res.status(400).json({ success: false, error: "Invalid invitation category" });
+    return;
+  }
+
   const expiresAt = new Date(Date.now() + req.body.expiresInDays * 24 * 60 * 60 * 1000).toISOString();
   const invitations: Invitation[] = await Promise.all(
     req.body.emails.map((email: string) =>
       invitationRepository.create({
         email,
         cohortId: req.body.cohortId,
-        category: req.body.category,
+        category,
         token: crypto.randomBytes(24).toString("hex"),
         expiresAt,
       }),

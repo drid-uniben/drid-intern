@@ -12,7 +12,7 @@ export const createSubmissionSchema = z.object({
 
 export const listSubmissionsQuerySchema = z.object({
   cohort: z.string().uuid().optional(),
-  category: z.enum(["backend", "frontend", "fullstack", "design"]).optional(),
+  category: z.string().trim().min(2).max(50).optional(),
   status: z.enum(["submitted", "under_review", "accepted", "rejected"]).optional(),
   search: z.string().optional(),
 });

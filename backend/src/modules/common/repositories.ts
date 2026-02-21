@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
-import { AuditLog, Challenge, Cohort, Invitation, Notification, Review, Submission, User } from "../../types/domain";
+import { AuditLog, Challenge, ChallengeCategory, Cohort, Invitation, Notification, Review, Submission, User } from "../../types/domain";
 
 const toUser = (user: {
   id: string;
@@ -34,7 +34,7 @@ const toCohort = (cohort: {
   cohortNumber: number;
   deadlineAt: Date;
   status: "DRAFT" | "PENDING_APPROVAL" | "ACTIVE" | "CLOSED" | "ARCHIVED";
-  allowedCategories: Array<"backend" | "frontend" | "fullstack" | "design">;
+  allowedCategories: string[];
   createdAt: Date;
   updatedAt: Date;
 }): Cohort => ({
@@ -51,7 +51,7 @@ const toCohort = (cohort: {
 const toChallenge = (challenge: {
   id: string;
   cohortId: string;
-  category: "backend" | "frontend" | "fullstack" | "design";
+  category: string;
   title: string;
   description: string;
   version: number;
@@ -72,7 +72,7 @@ const toInvitation = (invitation: {
   id: string;
   email: string;
   cohortId: string;
-  category: "backend" | "frontend" | "fullstack" | "design";
+  category: string;
   token: string;
   expiresAt: Date;
   acceptedAt: Date | null;
@@ -92,7 +92,7 @@ const toSubmission = (submission: {
   id: string;
   cohortId: string;
   invitationId: string;
-  category: "backend" | "frontend" | "fullstack" | "design";
+  category: string;
   fullName: string;
   email: string;
   githubUrl: string | null;
@@ -170,6 +170,20 @@ const toAuditLog = (auditLog: {
   entityId: auditLog.entityId,
   metadata: (auditLog.metadata ?? {}) as Record<string, unknown>,
   createdAt: auditLog.createdAt.toISOString(),
+});
+
+const toChallengeCategory = (category: {
+  id: string;
+  name: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}): ChallengeCategory => ({
+  id: category.id,
+  name: category.name,
+  isActive: category.isActive,
+  createdAt: category.createdAt.toISOString(),
+  updatedAt: category.updatedAt.toISOString(),
 });
 
 export const userRepository = {
@@ -287,6 +301,31 @@ export const challengeRepository = {
     });
 
     return toChallenge(challenge);
+  },
+};
+
+export const challengeCategoryRepository = {
+  list: async (): Promise<ChallengeCategory[]> => {
+    const categories = await prisma.challengeCategory.findMany({ orderBy: { name: "asc" } });
+    return categories.map(toChallengeCategory);
+  },
+  listActive: async (): Promise<ChallengeCategory[]> => {
+    const categories = await prisma.challengeCategory.findMany({ where: { isActive: true }, orderBy: { name: "asc" } });
+    return categories.map(toChallengeCategory);
+  },
+  findByName: async (name: string): Promise<ChallengeCategory | undefined> => {
+    const category = await prisma.challengeCategory.findUnique({ where: { name } });
+    return category ? toChallengeCategory(category) : undefined;
+  },
+  create: async (name: string): Promise<ChallengeCategory> => {
+    const category = await prisma.challengeCategory.create({
+      data: {
+        name,
+        isActive: true,
+      },
+    });
+
+    return toChallengeCategory(category);
   },
 };
 

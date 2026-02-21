@@ -4,7 +4,7 @@ import { env } from "../config/env";
 interface InvitationEmailInput {
   to: string;
   inviteLink: string;
-  category: "backend" | "frontend" | "fullstack" | "design";
+  category: string;
 }
 
 class EmailService {

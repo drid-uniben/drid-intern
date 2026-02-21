@@ -1,8 +1,10 @@
 import { ChallengeEditorForm } from "@/components/admin/ChallengeEditorForm";
 import { BackButton } from "@/components/ui/BackButton";
 
-export default async function AdminChallengeEditorPage({ params }: { params: Promise<{ challengeId: string }> }) {
-  const { challengeId } = await params;
+type ChallengeEditorPageParams = { challengeId: string } | Promise<{ challengeId: string }>;
+
+export default async function AdminChallengeEditorPage({ params }: { params: ChallengeEditorPageParams }) {
+  const { challengeId } = await Promise.resolve(params);
   return (
     <main className="mx-auto max-w-4xl px-6 py-12">
       <BackButton fallbackHref="/admin" />

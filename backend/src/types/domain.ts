@@ -2,7 +2,7 @@ export type UserRole = "ADMIN" | "REVIEWER" | "INTERN";
 
 export type CohortStatus = "DRAFT" | "PENDING_APPROVAL" | "ACTIVE" | "CLOSED" | "ARCHIVED";
 
-export type Category = "backend" | "frontend" | "fullstack" | "design";
+export type Category = string;
 
 export type SubmissionStatus = "submitted" | "under_review" | "accepted" | "rejected";
 
@@ -73,6 +73,14 @@ export interface Submission {
   message: string;
   status: SubmissionStatus;
   averageRating: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChallengeCategory {
+  id: string;
+  name: string;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }

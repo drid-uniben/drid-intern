@@ -1,4 +1,4 @@
-import { CreateChallengeForm } from "@/components/admin/CreateChallengeForm";
+import Link from "next/link";
 import { CohortChallengeList } from "@/components/admin/CohortChallengeList";
 import { BackButton } from "@/components/ui/BackButton";
 
@@ -13,12 +13,13 @@ export default async function AdminCohortChallengesPage({ params }: { params: Pr
       <p style={{ color: "var(--text-secondary)" }}>Manage challenges for this cohort.</p>
 
       <div className="glass rounded-2xl p-6" style={{ animation: "slideUp 0.5s ease-out 0.1s both" }}>
-        <h2 className="mb-4 text-lg font-semibold">Existing Challenges</h2>
+        <div className="mb-4 flex items-center justify-between gap-3" id="existing-challenges">
+          <h2 className="text-lg font-semibold">Existing Challenges</h2>
+          <Link className="btn-gradient !text-sm" href={`/admin/cohorts/${cohortId}/challenges/create`}>
+            + Create challenge
+          </Link>
+        </div>
         <CohortChallengeList cohortId={cohortId} />
-      </div>
-
-      <div style={{ animation: "slideUp 0.5s ease-out 0.2s both" }}>
-        <CreateChallengeForm cohortId={cohortId} />
       </div>
     </main>
   );

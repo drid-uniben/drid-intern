@@ -10,6 +10,7 @@ export default function AdminDashboardPage() {
   const cards = [
     { href: "/admin/users", label: "Users", description: "Manage user accounts & approvals", icon: "👥" },
     { href: "/admin/cohorts", label: "Cohorts", description: "Create and manage cohorts", icon: "📋" },
+    { href: "/admin/challenges/categories", label: "Categories", description: "Manage challenge categories", icon: "🏷️" },
     { href: "/admin/submissions", label: "Submissions", description: "Review challenge submissions", icon: "📄" },
   ];
 

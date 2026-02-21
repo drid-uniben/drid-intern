@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import { UserRole } from "@/types/domain";
 
 interface RouteGuardProps {
@@ -41,24 +42,35 @@ const isTokenValid = (token: string): boolean => {
 export function RouteGuard({ allowedRoles, children }: RouteGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const accessToken = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
-  const userRole = typeof window !== "undefined" ? (localStorage.getItem("userRole") as UserRole | null) : null;
-  const hasValidSession = !!accessToken && isTokenValid(accessToken);
-  const hasAllowedRole = !allowedRoles || (!!userRole && allowedRoles.includes(userRole));
+  const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
+    const accessToken = localStorage.getItem("accessToken");
+    const userRole = localStorage.getItem("userRole") as UserRole | null;
+    const hasValidSession = !!accessToken && isTokenValid(accessToken);
+    const hasAllowedRole = !allowedRoles || (!!userRole && allowedRoles.includes(userRole));
+
     if (!hasValidSession) {
       clearAuthStorage();
       router.replace(`/login?next=${encodeURIComponent(pathname)}`);
+      setIsAuthorized(false);
+      setIsCheckingAuth(false);
       return;
     }
 
     if (!hasAllowedRole) {
       router.replace("/403");
+      setIsAuthorized(false);
+      setIsCheckingAuth(false);
+      return;
     }
-  }, [hasAllowedRole, hasValidSession, pathname, router]);
 
-  if (!hasValidSession || !hasAllowedRole) {
+    setIsAuthorized(true);
+    setIsCheckingAuth(false);
+  }, [allowedRoles, pathname, router]);
+
+  if (isCheckingAuth || !isAuthorized) {
     return null;
   }
 

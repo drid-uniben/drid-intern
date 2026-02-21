@@ -1,31 +1,41 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
+import { useRouter } from "next/navigation";
 import { apiGet, apiPatch } from "@/lib/api";
 import { Challenge } from "@/types/domain";
 import { CardSkeleton } from "@/components/ui/LoadingSkeleton";
 
 export function ChallengeEditorForm({ challengeId }: { challengeId: string }) {
+  const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
+  const hydratedChallengeIdRef = useRef<string | null>(null);
 
-  const { isLoading } = useQuery({
+  const { data: challenge, isLoading, isError } = useQuery({
     queryKey: ["challenge", challengeId],
     queryFn: async () => {
       const result = await apiGet<Challenge>(`/challenges/${challengeId}`);
       if (result.success && result.data) {
-        setTitle(result.data.title);
-        setDescription(result.data.description);
         return result.data;
       }
-      return null;
+      throw new Error(result.error ?? "Challenge not found");
     },
   });
+
+  useEffect(() => {
+    if (!challenge) return;
+    if (hydratedChallengeIdRef.current === challenge.id) return;
+
+    setTitle(challenge.title);
+    setDescription(challenge.description);
+    hydratedChallengeIdRef.current = challenge.id;
+  }, [challenge]);
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -33,9 +43,14 @@ export function ChallengeEditorForm({ challengeId }: { challengeId: string }) {
       return apiPatch<Challenge>(`/challenges/${challengeId}`, { title, description }, token);
     },
     onSuccess: (result) => {
-      if (result.success) {
+      if (result.success && result.data) {
+        setTitle(result.data.title);
+        setDescription(result.data.description);
         setMessage("Challenge updated with new version! ✅");
         setIsSuccess(true);
+        if (result.data.id !== challengeId) {
+          router.replace(`/admin/challenges/${result.data.id}/edit`);
+        }
       } else {
         setMessage(result.error ?? "Failed to update challenge");
         setIsSuccess(false);
@@ -50,6 +65,10 @@ export function ChallengeEditorForm({ challengeId }: { challengeId: string }) {
   };
 
   if (isLoading) return <CardSkeleton />;
+
+  if (isError) {
+    return <p className="text-sm" style={{ color: "var(--error-color)" }}>Challenge not found.</p>;
+  }
 
   return (
     <form className="space-y-4" onSubmit={onSubmit}>
