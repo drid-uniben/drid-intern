@@ -1,39 +1,72 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { use } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "@/lib/api";
 import { CohortStatusActions } from "@/components/admin/CohortStatusActions";
 import { Cohort } from "@/types/domain";
+import { useAuthToken } from "@/hooks/useAuth";
+import { CardSkeleton } from "@/components/ui/LoadingSkeleton";
+import { AutoStatusBadge } from "@/components/ui/StatusBadge";
 
 export default function AdminCohortDetailPage({ params }: { params: Promise<{ cohortId: string }> }) {
-  const [cohort, setCohort] = useState<Cohort | null>(null);
-  const [cohortId, setCohortId] = useState<string>("");
+  const { cohortId } = use(params);
+  const token = useAuthToken();
 
-  useEffect(() => {
-    params.then(async (resolved) => {
-      setCohortId(resolved.cohortId);
-      const token = localStorage.getItem("accessToken") ?? undefined;
-      const result = await apiGet<Cohort>(`/cohorts/${resolved.cohortId}`, token);
-      if (result.success && result.data) {
-        setCohort(result.data);
-      }
-    });
-  }, [params]);
+  const { data: cohort, isLoading } = useQuery({
+    queryKey: ["admin-cohort", cohortId],
+    queryFn: async () => {
+      const result = await apiGet<Cohort>(`/cohorts/${cohortId}`, token);
+      return result.success && result.data ? result.data : null;
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <main className="mx-auto max-w-4xl px-6 py-12">
+        <CardSkeleton />
+      </main>
+    );
+  }
 
   if (!cohort) {
-    return <main className="mx-auto max-w-4xl px-6 py-12">Loading cohort...</main>;
+    return (
+      <main className="mx-auto max-w-4xl px-6 py-12">
+        <div className="glass rounded-2xl p-8 text-center">
+          <p className="text-xl font-semibold">Cohort not found</p>
+        </div>
+      </main>
+    );
   }
 
   return (
-    <main className="mx-auto max-w-4xl space-y-4 px-6 py-12">
-      <h1 className="text-3xl font-bold">Cohort Detail</h1>
-      <p className="text-slate-600">{cohort.year} Cohort {cohort.cohortNumber}</p>
-      <p className="text-slate-600">Deadline: {new Date(cohort.deadlineAt).toLocaleString()}</p>
-      <CohortStatusActions cohortId={cohortId} initialStatus={cohort.status} />
-      <div className="flex flex-wrap gap-3">
-        <Link className="rounded border border-slate-300 px-3 py-2" href={`/admin/cohorts/${cohortId}/challenges`}>Manage challenges</Link>
-        <Link className="rounded border border-slate-300 px-3 py-2" href={`/admin/cohorts/${cohortId}/invitations`}>Manage invitations</Link>
+    <main className="mx-auto max-w-4xl space-y-6 px-6 py-12">
+      <div className="glass rounded-3xl p-8" style={{ animation: "slideUp 0.5s ease-out" }}>
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold gradient-text">Cohort Detail</h1>
+          <AutoStatusBadge status={cohort.status} />
+        </div>
+        <div className="mt-3 space-y-1" style={{ color: "var(--text-secondary)" }}>
+          <p className="font-medium" style={{ color: "var(--text-primary)" }}>
+            {cohort.year} Cohort {cohort.cohortNumber}
+          </p>
+          <p>Deadline: {new Date(cohort.deadlineAt).toLocaleString()}</p>
+        </div>
+      </div>
+
+      <div className="glass rounded-2xl p-6" style={{ animation: "slideUp 0.5s ease-out 0.1s both" }}>
+        <h2 className="text-lg font-semibold mb-3">Status Management</h2>
+        <CohortStatusActions cohortId={cohortId} initialStatus={cohort.status} />
+      </div>
+
+      <div className="flex flex-wrap gap-3" style={{ animation: "slideUp 0.5s ease-out 0.2s both" }}>
+        <Link className="btn-gradient" href={`/admin/cohorts/${cohortId}/challenges`}>
+          Manage challenges
+        </Link>
+        <Link className="btn-glass" href={`/admin/cohorts/${cohortId}/invitations`}>
+          Manage invitations
+        </Link>
       </div>
     </main>
   );

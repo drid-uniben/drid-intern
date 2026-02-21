@@ -2,9 +2,14 @@ import { CreateCohortForm } from "@/components/admin/CreateCohortForm";
 
 export default function AdminCreateCohortPage() {
   return (
-    <main className="mx-auto max-w-xl space-y-4 px-6 py-12">
-      <h1 className="text-3xl font-bold">Create Cohort</h1>
-      <CreateCohortForm />
+    <main className="mx-auto max-w-xl px-6 py-12">
+      <div className="glass rounded-3xl p-8" style={{ animation: "slideUp 0.5s ease-out" }}>
+        <h1 className="text-3xl font-bold gradient-text">Create Cohort</h1>
+        <p className="mt-1" style={{ color: "var(--text-secondary)" }}>Set up a new internship cohort</p>
+        <div className="mt-6">
+          <CreateCohortForm />
+        </div>
+      </div>
     </main>
   );
 }
