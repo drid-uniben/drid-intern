@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { UserRole } from "@/types/domain";
 
@@ -41,30 +41,24 @@ const isTokenValid = (token: string): boolean => {
 export function RouteGuard({ allowedRoles, children }: RouteGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const [isAuthorized, setIsAuthorized] = useState(false);
+  const accessToken = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+  const userRole = typeof window !== "undefined" ? (localStorage.getItem("userRole") as UserRole | null) : null;
+  const hasValidSession = !!accessToken && isTokenValid(accessToken);
+  const hasAllowedRole = !allowedRoles || (!!userRole && allowedRoles.includes(userRole));
 
   useEffect(() => {
-    const accessToken = localStorage.getItem("accessToken");
-    const userRole = localStorage.getItem("userRole") as UserRole | null;
-
-    if (!accessToken || !isTokenValid(accessToken)) {
+    if (!hasValidSession) {
       clearAuthStorage();
-      setIsAuthorized(false);
       router.replace(`/login?next=${encodeURIComponent(pathname)}`);
       return;
     }
 
-    if (allowedRoles && (!userRole || !allowedRoles.includes(userRole))) {
-      setIsAuthorized(false);
+    if (!hasAllowedRole) {
       router.replace("/403");
-      return;
     }
+  }, [hasAllowedRole, hasValidSession, pathname, router]);
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsAuthorized(true);
-  }, [allowedRoles, pathname, router]);
-
-  if (!isAuthorized) {
+  if (!hasValidSession || !hasAllowedRole) {
     return null;
   }
 
