@@ -17,13 +17,8 @@ ENV DATABASE_URL="postgresql://user:pass@localhost:5432/dummy?schema=public"
 RUN pnpm prisma generate
 RUN pnpm run build
 
-FROM base AS prod-deps
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --prod --frozen-lockfile
-COPY --from=build /app/dist ./dist
-COPY prisma ./prisma
-COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=build /app/node_modules/@prisma/client ./node_modules/@prisma/client
+FROM build AS prod-deps
+RUN pnpm prune --prod
 
 FROM node:22-alpine AS runner
 WORKDIR /app
