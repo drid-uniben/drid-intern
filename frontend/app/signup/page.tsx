@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import { SignupForm } from "@/components/forms/SignupForm";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Sign Up — DRID Internship",
+  description: "Create your DRID Internship account. Admin approval required.",
+};
 
 export default function SignupPage() {
   return (

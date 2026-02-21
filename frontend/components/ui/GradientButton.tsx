@@ -1,61 +1,80 @@
 "use client";
 
-import { motion, type HTMLMotionProps } from "motion/react";
+import * as m from "motion/react-m";
+import Link from "next/link";
+import { type ReactNode } from "react";
 
 type Variant = "gradient" | "glass" | "danger";
 
-interface GradientButtonProps extends Omit<HTMLMotionProps<"button">, "type"> {
+interface GradientButtonProps {
+  children: ReactNode;
   variant?: Variant;
+  href?: string;
   loading?: boolean;
+  disabled?: boolean;
+  className?: string;
   type?: "button" | "submit" | "reset";
+  onClick?: () => void;
 }
 
-const variantClass: Record<Variant, string> = {
+const variantClasses: Record<Variant, string> = {
   gradient: "btn-gradient",
   glass: "btn-glass",
   danger: "btn-gradient",
 };
 
-const dangerStyle = {
-  background: "linear-gradient(135deg, #ef4444, #dc2626)",
-};
-
 export function GradientButton({
-  variant = "gradient",
-  loading = false,
   children,
+  variant = "gradient",
+  href,
+  loading = false,
   className = "",
   disabled,
-  style,
-  ...rest
+  type = "button",
+  onClick,
 }: GradientButtonProps) {
+  const classes = `${variantClasses[variant]} ${className}`;
+
+  const inner = loading ? (
+    <span className="flex items-center gap-2">
+      <span
+        style={{
+          width: 16,
+          height: 16,
+          border: "2px solid rgba(255,255,255,0.3)",
+          borderTopColor: "#fff",
+          borderRadius: "50%",
+          display: "inline-block",
+          animation: "spin 0.6s linear infinite",
+        }}
+      />
+      {children}
+    </span>
+  ) : (
+    children
+  );
+
+  if (href) {
+    return (
+      <m.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+        <Link className={classes} href={href}>
+          {inner}
+        </Link>
+      </m.div>
+    );
+  }
+
   return (
-    <motion.button
-      className={`${variantClass[variant]} ${className}`}
-      style={variant === "danger" ? { ...dangerStyle, ...style } : style}
-      whileHover={disabled || loading ? undefined : { scale: 1.02 }}
-      whileTap={disabled || loading ? undefined : { scale: 0.98 }}
+    <m.button
+      className={classes}
       disabled={disabled || loading}
-      {...rest}
+      type={type}
+      onClick={onClick}
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.97 }}
     >
-      {loading ? (
-        <>
-          <span
-            style={{
-              width: 16,
-              height: 16,
-              border: "2px solid rgba(255,255,255,0.3)",
-              borderTopColor: "#fff",
-              borderRadius: "50%",
-              display: "inline-block",
-              animation: "spin 0.6s linear infinite",
-            }}
-          />
-          {children}
-        </>
-      ) : (
-        children
-      )}
-    </motion.button>
+      {inner}
+    </m.button>
   );
 }
+

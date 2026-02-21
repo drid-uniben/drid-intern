@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import { apiGet } from "@/lib/api";
 import { Cohort } from "@/types/domain";
+
+export const metadata: Metadata = {
+  title: "Countdown — DRID Internship",
+  description: "Countdown timer to the current cohort deadline.",
+};
 
 const formatRemaining = (deadlineAt: string): { days: number; hours: number; mins: number; secs: number; ended: boolean } => {
   const diff = new Date(deadlineAt).getTime() - Date.now();

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "motion/react";
+import * as m from "motion/react-m";
 import { apiGet } from "@/lib/api";
 import { useAuthToken } from "@/hooks/useAuth";
 import { ListSkeleton } from "@/components/ui/LoadingSkeleton";
@@ -38,7 +38,7 @@ export default function AdminSubmissionsPage() {
       ) : (
         <div className="mt-6 space-y-3">
           {items.map((item, i) => (
-            <motion.div
+            <m.div
               key={item.id}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -61,7 +61,7 @@ export default function AdminSubmissionsPage() {
                   </div>
                 </div>
               </Link>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       )}

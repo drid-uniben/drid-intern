@@ -2,7 +2,8 @@
 
 import { FormEvent, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence } from "motion/react";
+import * as m from "motion/react-m";
 import { apiPost } from "@/lib/api";
 import { useAuthToken } from "@/hooks/useAuth";
 
@@ -48,8 +49,8 @@ export function InvitationBulkForm({ cohortId }: { cohortId: string }) {
       <h2 className="text-lg font-semibold gradient-text">Send Invitations</h2>
       <form className="mt-4 space-y-4" onSubmit={onSubmit}>
         <div>
-          <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Category</label>
-          <select className="input-glass" value={category} onChange={(e) => setCategory(e.target.value as typeof category)}>
+          <label htmlFor="invite-bulk-category" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Category</label>
+          <select id="invite-bulk-category" className="input-glass" value={category} onChange={(e) => setCategory(e.target.value as typeof category)}>
             <option value="backend">Backend</option>
             <option value="frontend">Frontend</option>
             <option value="fullstack">Fullstack</option>
@@ -57,8 +58,9 @@ export function InvitationBulkForm({ cohortId }: { cohortId: string }) {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Email addresses</label>
+          <label htmlFor="invite-bulk-emails" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Email addresses</label>
           <textarea
+            id="invite-bulk-emails"
             className="input-glass"
             rows={8}
             placeholder="Enter one email per line, or comma-separated"
@@ -74,7 +76,7 @@ export function InvitationBulkForm({ cohortId }: { cohortId: string }) {
 
         <AnimatePresence>
           {message && (
-            <motion.p
+            <m.p
               className="text-sm rounded-lg p-3"
               style={{
                 background: isSuccess ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)",
@@ -85,7 +87,7 @@ export function InvitationBulkForm({ cohortId }: { cohortId: string }) {
               exit={{ opacity: 0, height: 0 }}
             >
               {message}
-            </motion.p>
+            </m.p>
           )}
         </AnimatePresence>
       </form>

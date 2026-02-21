@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "500 Server Error — DRID Internship",
+  description: "An unexpected server error occurred.",
+};
 
 export default function ServerErrorPage() {
   return (

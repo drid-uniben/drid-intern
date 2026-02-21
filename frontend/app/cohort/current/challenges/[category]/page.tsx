@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import { apiGet } from "@/lib/api";
 import { Challenge } from "@/types/domain";
+
+export const metadata: Metadata = {
+  title: "Challenge Details — DRID Internship",
+  description: "View challenge details and submission instructions.",
+};
 
 export default async function ChallengeDetailPage({ params }: { params: Promise<{ category: string }> }) {
   const resolved = await params;

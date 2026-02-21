@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import { LoginForm } from "@/components/forms/LoginForm";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Sign In — DRID Internship",
+  description: "Sign in to your DRID Internship account.",
+};
 
 export default function LoginPage() {
   return (

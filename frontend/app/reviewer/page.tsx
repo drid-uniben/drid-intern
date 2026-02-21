@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Reviewer Dashboard — DRID Internship",
+  description: "Review and rate intern submissions.",
+};
 
 export default function ReviewerDashboardPage() {
   return (

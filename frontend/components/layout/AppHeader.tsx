@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence } from "motion/react";
+import * as m from "motion/react-m";
 import { apiPost } from "@/lib/api";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
@@ -71,7 +72,7 @@ export function AppHeader() {
               >
                 {item.label}
                 {isActive && (
-                  <motion.div
+                  <m.div
                     layoutId="nav-underline"
                     className="absolute bottom-0 left-0 right-0 h-0.5"
                     style={{ background: "linear-gradient(90deg, var(--accent-start), var(--accent-end))" }}
@@ -129,7 +130,7 @@ export function AppHeader() {
       {/* Mobile Nav Panel */}
       <AnimatePresence>
         {mobileOpen && (
-          <motion.nav
+          <m.nav
             className="glass-strong md:hidden border-t"
             style={{ borderColor: "var(--glass-border)" }}
             initial={{ height: 0, opacity: 0 }}
@@ -176,7 +177,7 @@ export function AppHeader() {
                 </Link>
               )}
             </div>
-          </motion.nav>
+          </m.nav>
         )}
       </AnimatePresence>
     </header>

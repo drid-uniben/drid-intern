@@ -1,57 +1,52 @@
 "use client";
 
-import { motion } from "motion/react";
+import * as m from "motion/react-m";
+import { type ReactNode } from "react";
 
 interface PageTransitionProps {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 }
 
 export function PageTransition({ children, className = "" }: PageTransitionProps) {
   return (
-    <motion.div
+    <m.div
       className={className}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
+      transition={{ duration: 0.4 }}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }
 
-interface StaggerContainerProps {
-  children: React.ReactNode;
-  className?: string;
-  stagger?: number;
-}
-
-export function StaggerContainer({ children, className = "", stagger = 0.08 }: StaggerContainerProps) {
+export function StaggerContainer({ children, className = "" }: PageTransitionProps) {
   return (
-    <motion.div
+    <m.div
       className={className}
       initial="hidden"
       animate="visible"
       variants={{
         hidden: {},
-        visible: { transition: { staggerChildren: stagger } },
+        visible: { transition: { staggerChildren: 0.1 } },
       }}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }
 
-export function StaggerItem({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+export function StaggerItem({ children, className = "" }: PageTransitionProps) {
   return (
-    <motion.div
+    <m.div
       className={className}
       variants={{
-        hidden: { opacity: 0, y: 16 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0 },
       }}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }

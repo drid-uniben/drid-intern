@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "403 Forbidden — DRID Internship",
+  description: "You do not have permission to access this page.",
+};
 
 export default function ForbiddenPage() {
   return (

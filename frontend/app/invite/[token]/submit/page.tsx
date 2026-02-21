@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import { InviteSubmissionForm } from "@/components/forms/InviteSubmissionForm";
+
+export const metadata: Metadata = {
+  title: "Submit Challenge — DRID Internship",
+  description: "Submit your challenge for the DRID internship.",
+};
 
 export default async function InviteSubmitPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;

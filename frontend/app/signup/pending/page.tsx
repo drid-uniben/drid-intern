@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Pending Approval — DRID Internship",
+  description: "Your account is pending admin approval.",
+};
 
 export default function SignupPendingPage() {
   return (

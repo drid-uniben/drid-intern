@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "motion/react";
+import * as m from "motion/react-m";
 import { apiGet } from "@/lib/api";
 import { Challenge } from "@/types/domain";
 import { useAuthToken } from "@/hooks/useAuth";
@@ -28,7 +28,7 @@ export function CohortChallengeList({ cohortId }: { cohortId: string }) {
   return (
     <div className="space-y-3">
       {challenges.map((challenge, i) => (
-        <motion.div
+        <m.div
           key={challenge.id}
           className="glass rounded-xl p-4 flex items-center justify-between"
           initial={{ opacity: 0, y: 12 }}
@@ -42,7 +42,7 @@ export function CohortChallengeList({ cohortId }: { cohortId: string }) {
           <Link className="btn-glass !py-1.5 !px-3 !text-sm !rounded-lg" href={`/admin/challenges/${challenge.id}/edit`}>
             Edit
           </Link>
-        </motion.div>
+        </m.div>
       ))}
     </div>
   );

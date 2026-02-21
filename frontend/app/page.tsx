@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { apiGet } from "@/lib/api";
 import { Challenge, Cohort } from "@/types/domain";
+
+export const metadata: Metadata = {
+  title: "DRID Internship Platform",
+  description: "Apply for DRID cohort-based internship challenges in frontend, backend, fullstack, and design.",
+};
 
 export default async function Home() {
   const cohortResult = await apiGet<Cohort>("/public/cohort");

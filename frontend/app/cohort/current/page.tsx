@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { apiGet } from "@/lib/api";
 import { Cohort } from "@/types/domain";
+
+export const metadata: Metadata = {
+  title: "Current Cohort — DRID Internship",
+  description: "View the active DRID internship cohort details and deadline.",
+};
 
 export default async function CurrentCohortPage() {
   const result = await apiGet<Cohort>("/public/cohort");

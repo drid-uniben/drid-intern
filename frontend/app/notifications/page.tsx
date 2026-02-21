@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "motion/react";
+import * as m from "motion/react-m";
 import { apiGet } from "@/lib/api";
 import { useAuthToken } from "@/hooks/useAuth";
 import { ListSkeleton } from "@/components/ui/LoadingSkeleton";
@@ -39,7 +39,7 @@ export default function NotificationsPage() {
       ) : (
         <div className="mt-6 space-y-3">
           {items.map((item, i) => (
-            <motion.article
+            <m.article
               key={item.id}
               className="glass rounded-2xl p-4"
               style={{ opacity: item.isRead ? 0.7 : 1 }}
@@ -59,7 +59,7 @@ export default function NotificationsPage() {
                   <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>{item.message}</p>
                 </div>
               </div>
-            </motion.article>
+            </m.article>
           ))}
         </div>
       )}

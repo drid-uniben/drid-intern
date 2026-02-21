@@ -2,7 +2,8 @@
 
 import { use } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence } from "motion/react";
+import * as m from "motion/react-m";
 import { apiGet, apiPatch } from "@/lib/api";
 import { useAuthToken } from "@/hooks/useAuth";
 import { CardSkeleton } from "@/components/ui/LoadingSkeleton";

@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Submission Received — DRID Internship",
+  description: "Your challenge submission has been received successfully.",
+};
 
 export default async function InviteSuccessPage() {
   return (

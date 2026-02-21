@@ -1,43 +1,24 @@
 "use client";
 
-import { motion, type HTMLMotionProps } from "motion/react";
+import * as m from "motion/react-m";
+import { type ReactNode } from "react";
 
-type Variant = "default" | "subtle" | "strong";
-
-interface GlassCardProps extends HTMLMotionProps<"div"> {
-  variant?: Variant;
+interface GlassCardProps {
+  children: ReactNode;
+  className?: string;
   hover?: boolean;
-  glow?: boolean;
+  delay?: number;
 }
 
-const variantClass: Record<Variant, string> = {
-  default: "glass",
-  subtle: "glass-subtle",
-  strong: "glass-strong",
-};
-
-export function GlassCard({
-  variant = "default",
-  hover = true,
-  glow = false,
-  className = "",
-  children,
-  ...rest
-}: GlassCardProps) {
+export function GlassCard({ children, className = "", hover = true, delay = 0 }: GlassCardProps) {
   return (
-    <motion.div
-      className={`${variantClass[variant]} rounded-2xl p-6 ${className}`}
-      initial={{ opacity: 0, y: 16 }}
+    <m.div
+      className={`glass rounded-2xl p-6 ${hover ? "transition-all duration-300 hover:scale-[1.02]" : ""} ${className}`}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      whileHover={
-        hover
-          ? { y: -4, boxShadow: glow ? "0 0 30px var(--glow-color)" : undefined }
-          : undefined
-      }
-      {...rest}
+      transition={{ duration: 0.5, delay }}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }

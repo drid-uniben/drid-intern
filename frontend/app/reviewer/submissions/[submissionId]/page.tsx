@@ -2,7 +2,8 @@
 
 import { FormEvent, use, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence } from "motion/react";
+import * as m from "motion/react-m";
 import { apiGet, apiPost } from "@/lib/api";
 import { useAuthToken } from "@/hooks/useAuth";
 import { CardSkeleton } from "@/components/ui/LoadingSkeleton";
@@ -88,10 +89,11 @@ export default function ReviewerSubmissionPage({ params }: { params: Promise<{ s
         <h2 className="text-lg font-semibold mb-4">Your Review</h2>
         <form className="space-y-4" onSubmit={submitReview}>
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>
+            <label htmlFor="review-rating" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>
               Rating (1-10)
             </label>
             <input
+              id="review-rating"
               className="input-glass"
               type="number"
               min={1}
@@ -102,10 +104,11 @@ export default function ReviewerSubmissionPage({ params }: { params: Promise<{ s
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>
+            <label htmlFor="review-comment" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>
               Comment
             </label>
             <textarea
+              id="review-comment"
               className="input-glass"
               rows={4}
               value={comment}
@@ -121,7 +124,7 @@ export default function ReviewerSubmissionPage({ params }: { params: Promise<{ s
 
           <AnimatePresence>
             {resultMessage && (
-              <motion.p
+              <m.p
                 className="text-sm rounded-lg p-3"
                 style={{
                   background: isSuccess ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)",
@@ -132,7 +135,7 @@ export default function ReviewerSubmissionPage({ params }: { params: Promise<{ s
                 exit={{ opacity: 0 }}
               >
                 {resultMessage}
-              </motion.p>
+              </m.p>
             )}
           </AnimatePresence>
         </form>

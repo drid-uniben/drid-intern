@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { apiGet } from "@/lib/api";
 import { InvitationValidation } from "@/types/domain";
+
+export const metadata: Metadata = {
+  title: "Invitation — DRID Internship",
+  description: "Validate your DRID internship invitation.",
+};
 
 export default async function InviteValidationPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;

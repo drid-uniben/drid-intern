@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Intern Dashboard — DRID Internship",
+  description: "Your cohort workspace and assigned updates.",
+};
+
 export default function InternDashboardPage() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">

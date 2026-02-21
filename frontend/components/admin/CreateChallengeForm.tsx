@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useReducer } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence } from "motion/react";
+import * as m from "motion/react-m";
 import { apiPost } from "@/lib/api";
 import { useAuthToken } from "@/hooks/useAuth";
 
@@ -11,36 +12,62 @@ interface ChallengeResponse {
   id: string;
 }
 
+interface State {
+  category: "backend" | "frontend" | "fullstack" | "design";
+  title: string;
+  description: string;
+  challengeId: string | null;
+  message: string | null;
+  isSuccess: boolean;
+}
+
+type Action =
+  | { type: "SET_FIELD"; field: "category" | "title" | "description"; value: string }
+  | { type: "RESULT"; message: string; isSuccess: boolean; challengeId?: string }
+  | { type: "CLEAR_MESSAGE" };
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "SET_FIELD":
+      return { ...state, [action.field]: action.value };
+    case "RESULT":
+      return { ...state, message: action.message, isSuccess: action.isSuccess, challengeId: action.challengeId ?? state.challengeId };
+    case "CLEAR_MESSAGE":
+      return { ...state, message: null };
+    default:
+      return state;
+  }
+}
+
 export function CreateChallengeForm({ cohortId }: { cohortId: string }) {
   const token = useAuthToken();
   const queryClient = useQueryClient();
-  const [category, setCategory] = useState<"backend" | "frontend" | "fullstack" | "design">("backend");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [challengeId, setChallengeId] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [state, dispatch] = useReducer(reducer, {
+    category: "backend",
+    title: "",
+    description: "",
+    challengeId: null,
+    message: null,
+    isSuccess: false,
+  });
 
   const mutation = useMutation({
     mutationFn: async () => {
-      return apiPost<ChallengeResponse>("/challenges", { cohortId, category, title, description }, token);
+      return apiPost<ChallengeResponse>("/challenges", { cohortId, category: state.category, title: state.title, description: state.description }, token);
     },
     onSuccess: (result) => {
       if (result.success && result.data) {
-        setChallengeId(result.data.id);
-        setMessage("Challenge created successfully! 🎉");
-        setIsSuccess(true);
+        dispatch({ type: "RESULT", message: "Challenge created successfully! 🎉", isSuccess: true, challengeId: result.data.id });
         queryClient.invalidateQueries({ queryKey: ["admin-challenges", cohortId] });
       } else {
-        setMessage(result.error ?? "Failed to create challenge");
-        setIsSuccess(false);
+        dispatch({ type: "RESULT", message: result.error ?? "Failed to create challenge", isSuccess: false });
       }
     },
   });
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setMessage(null);
+    dispatch({ type: "CLEAR_MESSAGE" });
     mutation.mutate();
   };
 
@@ -49,8 +76,8 @@ export function CreateChallengeForm({ cohortId }: { cohortId: string }) {
       <h2 className="text-lg font-semibold gradient-text">Create New Challenge</h2>
       <form className="mt-4 space-y-4" onSubmit={onSubmit}>
         <div>
-          <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Category</label>
-          <select className="input-glass" value={category} onChange={(e) => setCategory(e.target.value as typeof category)}>
+          <label htmlFor="challenge-category" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Category</label>
+          <select id="challenge-category" className="input-glass" value={state.category} onChange={(e) => dispatch({ type: "SET_FIELD", field: "category", value: e.target.value })}>
             <option value="backend">Backend</option>
             <option value="frontend">Frontend</option>
             <option value="fullstack">Fullstack</option>
@@ -58,20 +85,20 @@ export function CreateChallengeForm({ cohortId }: { cohortId: string }) {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Title</label>
-          <input className="input-glass" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Challenge title" required />
+          <label htmlFor="challenge-title" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Title</label>
+          <input id="challenge-title" className="input-glass" value={state.title} onChange={(e) => dispatch({ type: "SET_FIELD", field: "title", value: e.target.value })} placeholder="Challenge title" required />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Description</label>
-          <textarea className="input-glass" rows={10} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Challenge description" required style={{ resize: "vertical" }} />
+          <label htmlFor="challenge-desc" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Description</label>
+          <textarea id="challenge-desc" className="input-glass" rows={10} value={state.description} onChange={(e) => dispatch({ type: "SET_FIELD", field: "description", value: e.target.value })} placeholder="Challenge description" required style={{ resize: "vertical" }} />
         </div>
         <button className="btn-gradient w-full" type="submit" disabled={mutation.isPending}>
           {mutation.isPending ? "Creating..." : "Create challenge"}
         </button>
 
         <AnimatePresence>
-          {message && (
-            <motion.div
+          {state.message && (
+            <m.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
@@ -79,18 +106,18 @@ export function CreateChallengeForm({ cohortId }: { cohortId: string }) {
               <p
                 className="text-sm rounded-lg p-3"
                 style={{
-                  background: isSuccess ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)",
-                  color: isSuccess ? "var(--success-color)" : "var(--error-color)",
+                  background: state.isSuccess ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)",
+                  color: state.isSuccess ? "var(--success-color)" : "var(--error-color)",
                 }}
               >
-                {message}
+                {state.message}
               </p>
-              {challengeId && (
-                <Link className="mt-2 inline-block text-sm gradient-text font-medium" href={`/admin/challenges/${challengeId}/edit`}>
+              {state.challengeId && (
+                <Link className="mt-2 inline-block text-sm gradient-text font-medium" href={`/admin/challenges/${state.challengeId}/edit`}>
                   Open in challenge editor →
                 </Link>
               )}
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
       </form>

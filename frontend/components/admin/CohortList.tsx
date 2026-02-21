@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "motion/react";
+import * as m from "motion/react-m";
 import { apiGet } from "@/lib/api";
 import { Cohort } from "@/types/domain";
 import { useAuthToken } from "@/hooks/useAuth";
@@ -25,7 +25,7 @@ export function CohortList() {
   return (
     <div className="space-y-3">
       {cohorts.map((cohort, i) => (
-        <motion.div
+        <m.div
           key={cohort.id}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -45,7 +45,7 @@ export function CohortList() {
               <AutoStatusBadge status={cohort.status} />
             </div>
           </Link>
-        </motion.div>
+        </m.div>
       ))}
     </div>
   );

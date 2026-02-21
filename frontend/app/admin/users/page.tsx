@@ -1,7 +1,8 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence } from "motion/react";
+import * as m from "motion/react-m";
 import { apiGet, apiPatch } from "@/lib/api";
 import { AdminUser, UserRole } from "@/types/domain";
 import { useAuthToken } from "@/hooks/useAuth";
@@ -69,7 +70,7 @@ export default function AdminUsersPage() {
         <div className="mt-6 space-y-3">
           <AnimatePresence>
             {users.map((user, i) => (
-              <motion.div
+              <m.div
                 key={user.id}
                 className="glass rounded-2xl p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
                 initial={{ opacity: 0, y: 12 }}
@@ -123,7 +124,7 @@ export default function AdminUsersPage() {
                     Reject
                   </button>
                 </div>
-              </motion.div>
+              </m.div>
             ))}
           </AnimatePresence>
         </div>
