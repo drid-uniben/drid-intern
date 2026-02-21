@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
 import { apiPost } from "@/lib/api";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 const navItems = (role: string | null, token: string | null) => {
-  const items: { href: string; label: string; match: string }[] = [
-    { href: "/cohort/current", label: "Cohort", match: "/cohort/current" },
+  const items: { href: string; label: string; match: string; exact?: boolean }[] = [
+    { href: "/cohort/current", label: "Cohort", match: "/cohort/current", exact: true },
     { href: "/cohort/current/challenges", label: "Challenges", match: "/cohort/current/challenges" },
   ];
 
@@ -21,13 +21,29 @@ const navItems = (role: string | null, token: string | null) => {
   return items;
 };
 
+const isActivePath = (pathname: string, match: string, exact?: boolean): boolean => {
+  if (exact) {
+    return pathname === match;
+  }
+
+  return pathname === match || pathname.startsWith(`${match}/`);
+};
+
 export function AppHeader() {
   const pathname = usePathname();
   const router = useRouter();
-  const role = typeof window !== "undefined" ? localStorage.getItem("userRole") : null;
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [authState, setAuthState] = useState<{ role: string | null; token: string | null }>({ role: null, token: null });
+  const role = authState.role;
+  const token = authState.token;
   const items = navItems(role, token);
+
+  useEffect(() => {
+    setAuthState({
+      role: localStorage.getItem("userRole"),
+      token: localStorage.getItem("accessToken"),
+    });
+  }, []);
 
   const logout = async () => {
     if (token) {
@@ -36,6 +52,7 @@ export function AppHeader() {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("userRole");
+    setAuthState({ role: null, token: null });
     router.push("/login");
   };
 
@@ -50,7 +67,7 @@ export function AppHeader() {
         {/* Desktop Nav */}
         <nav className="hidden items-center gap-1 md:flex">
           {items.map((item) => {
-            const isActive = pathname.startsWith(item.match);
+            const isActive = isActivePath(pathname, item.match, item.exact);
             return (
               <Link
                 key={item.href}
@@ -128,7 +145,7 @@ export function AppHeader() {
           >
             <div className="flex flex-col gap-1 p-4">
               {items.map((item) => {
-                const isActive = pathname.startsWith(item.match);
+                const isActive = isActivePath(pathname, item.match, item.exact);
                 return (
                   <Link
                     key={item.href}

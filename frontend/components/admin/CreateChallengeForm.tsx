@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useReducer } from "react";
+import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
@@ -40,6 +41,7 @@ function reducer(state: State, action: Action): State {
 }
 
 export function CreateChallengeForm({ cohortId }: { cohortId: string }) {
+  const router = useRouter();
   const token = useAuthToken();
   const queryClient = useQueryClient();
   const [state, dispatch] = useReducer(reducer, {
@@ -59,6 +61,7 @@ export function CreateChallengeForm({ cohortId }: { cohortId: string }) {
       if (result.success && result.data) {
         dispatch({ type: "RESULT", message: "Challenge created successfully! 🎉", isSuccess: true, challengeId: result.data.id });
         queryClient.invalidateQueries({ queryKey: ["admin-challenges", cohortId] });
+        router.push(`/admin/cohorts/${cohortId}/challenges#existing-challenges`);
       } else {
         dispatch({ type: "RESULT", message: result.error ?? "Failed to create challenge", isSuccess: false });
       }

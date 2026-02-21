@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useReducer } from "react";
+import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
@@ -35,6 +36,7 @@ function reducer(state: State, action: Action): State {
 }
 
 export function CreateCohortForm() {
+  const router = useRouter();
   const token = useAuthToken();
   const [state, dispatch] = useReducer(reducer, {
     year: String(new Date().getFullYear()),
@@ -61,7 +63,7 @@ export function CreateCohortForm() {
     },
     onSuccess: (result) => {
       if (result.success) {
-        dispatch({ type: "RESULT", message: "Cohort created successfully! 🎉", isSuccess: true });
+        router.push("/admin/cohorts");
       } else {
         dispatch({ type: "RESULT", message: result.error ?? "Failed to create cohort", isSuccess: false });
       }
