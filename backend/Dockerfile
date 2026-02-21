@@ -11,15 +11,17 @@ RUN pnpm install --frozen-lockfile
 
 FROM deps AS build
 COPY tsconfig.json ./
+COPY prisma ./prisma
 COPY src ./src
+ENV DATABASE_URL="postgresql://user:pass@localhost:5432/dummy?schema=public"
+RUN pnpm prisma generate
 RUN pnpm run build
 
 FROM base AS prod-deps
-WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --prod --frozen-lockfile
-COPY prisma ./prisma
 COPY --from=build /app/dist ./dist
+COPY prisma ./prisma
 ENV DATABASE_URL="postgresql://user:pass@localhost:5432/dummy?schema=public"
 RUN pnpm prisma generate
 
