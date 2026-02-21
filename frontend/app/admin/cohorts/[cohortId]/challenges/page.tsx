@@ -1,10 +1,12 @@
 import { CreateChallengeForm } from "@/components/admin/CreateChallengeForm";
 import { CohortChallengeList } from "@/components/admin/CohortChallengeList";
+import { BackButton } from "@/components/ui/BackButton";
 
 export default async function AdminCohortChallengesPage({ params }: { params: Promise<{ cohortId: string }> }) {
   const { cohortId } = await params;
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-6 py-12">
+      <BackButton fallbackHref={`/admin/cohorts/${cohortId}`} />
       <h1 className="text-3xl font-bold" style={{ animation: "fadeIn 0.5s ease-out" }}>
         Challenge <span className="gradient-text">Management</span>
       </h1>

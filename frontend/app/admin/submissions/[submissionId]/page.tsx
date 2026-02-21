@@ -6,6 +6,7 @@ import { apiGet, apiPatch } from "@/lib/api";
 import { useAuthToken } from "@/hooks/useAuth";
 import { CardSkeleton } from "@/components/ui/LoadingSkeleton";
 import { AutoStatusBadge } from "@/components/ui/StatusBadge";
+import { BackButton } from "@/components/ui/BackButton";
 
 interface SubmissionDetail {
   id: string;
@@ -52,12 +53,18 @@ export default function AdminSubmissionDetailPage({ params }: { params: Promise<
   });
 
   if (isLoading) {
-    return <main className="mx-auto max-w-3xl px-6 py-12"><CardSkeleton /></main>;
+    return (
+      <main className="mx-auto max-w-3xl px-6 py-12">
+        <BackButton fallbackHref="/admin" />
+        <CardSkeleton />
+      </main>
+    );
   }
 
   if (!submission) {
     return (
       <main className="mx-auto max-w-3xl px-6 py-12">
+        <BackButton fallbackHref="/admin" />
         <div className="glass rounded-2xl p-8 text-center">
           <p className="text-xl font-semibold">Submission not found</p>
         </div>
@@ -67,6 +74,7 @@ export default function AdminSubmissionDetailPage({ params }: { params: Promise<
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 px-6 py-12">
+      <BackButton fallbackHref="/admin" />
       <div className="glass rounded-3xl p-8" style={{ animation: "slideUp 0.5s ease-out" }}>
         <div className="flex items-center gap-3 flex-wrap">
           <h1 className="text-3xl font-bold gradient-text">Submission Detail</h1>

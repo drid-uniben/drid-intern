@@ -9,6 +9,7 @@ import { Cohort } from "@/types/domain";
 import { useAuthToken } from "@/hooks/useAuth";
 import { CardSkeleton } from "@/components/ui/LoadingSkeleton";
 import { AutoStatusBadge } from "@/components/ui/StatusBadge";
+import { BackButton } from "@/components/ui/BackButton";
 
 export default function AdminCohortDetailPage({ params }: { params: Promise<{ cohortId: string }> }) {
   const { cohortId } = use(params);
@@ -25,6 +26,7 @@ export default function AdminCohortDetailPage({ params }: { params: Promise<{ co
   if (isLoading) {
     return (
       <main className="mx-auto max-w-4xl px-6 py-12">
+        <BackButton fallbackHref="/admin" />
         <CardSkeleton />
       </main>
     );
@@ -33,6 +35,7 @@ export default function AdminCohortDetailPage({ params }: { params: Promise<{ co
   if (!cohort) {
     return (
       <main className="mx-auto max-w-4xl px-6 py-12">
+        <BackButton fallbackHref="/admin" />
         <div className="glass rounded-2xl p-8 text-center">
           <p className="text-xl font-semibold">Cohort not found</p>
         </div>
@@ -42,6 +45,7 @@ export default function AdminCohortDetailPage({ params }: { params: Promise<{ co
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-6 py-12">
+      <BackButton fallbackHref="/admin" />
       <div className="glass rounded-3xl p-8" style={{ animation: "slideUp 0.5s ease-out" }}>
         <div className="flex items-center gap-3">
           <h1 className="text-3xl font-bold gradient-text">Cohort Detail</h1>

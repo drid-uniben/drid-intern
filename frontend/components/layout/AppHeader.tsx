@@ -18,18 +18,6 @@ const navItems = (role: string | null, token: string | null) => {
     items.push({ href: "/dashboard", label: "Dashboard", match: "/dashboard" });
   }
 
-  if (role === "ADMIN") {
-    items.push({ href: "/admin", label: "Admin", match: "/admin" });
-  }
-
-  if (role === "REVIEWER") {
-    items.push({ href: "/reviewer", label: "Reviewer", match: "/reviewer" });
-  }
-
-  if (role === "INTERN") {
-    items.push({ href: "/intern", label: "Intern", match: "/intern" });
-  }
-
   return items;
 };
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { apiGet } from "@/lib/api";
 import { Challenge } from "@/types/domain";
+import { BackButton } from "@/components/ui/BackButton";
 
 export const metadata: Metadata = {
   title: "Challenge Details — DRID Internship",
@@ -17,6 +18,7 @@ export default async function ChallengeDetailPage({ params }: { params: Promise<
   if (!challenge) {
     return (
       <main className="mx-auto max-w-3xl px-6 py-12">
+        <BackButton fallbackHref="/cohort/current/challenges" />
         <div className="glass rounded-2xl p-8 text-center" style={{ animation: "slideUp 0.5s ease-out" }}>
           <p className="text-xl font-semibold">Challenge not found.</p>
         </div>
@@ -26,6 +28,7 @@ export default async function ChallengeDetailPage({ params }: { params: Promise<
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 px-6 py-12">
+      <BackButton fallbackHref="/cohort/current/challenges" />
       <div className="glass rounded-3xl p-8" style={{ animation: "slideUp 0.5s ease-out" }}>
         <span className="badge badge-accent">{challenge.category}</span>
         <h1 className="mt-3 text-3xl font-bold capitalize gradient-text">
