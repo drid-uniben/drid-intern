@@ -33,6 +33,15 @@ const toForwardHeaders = (request: NextRequest): Headers => {
   return headers;
 };
 
+const toClientHeaders = (upstreamHeaders: Headers): Headers => {
+  const headers = new Headers(upstreamHeaders);
+  headers.delete("content-length");
+  headers.delete("content-encoding");
+  headers.delete("transfer-encoding");
+  headers.delete("connection");
+  return headers;
+};
+
 const proxy = async (request: NextRequest, path: string[]): Promise<NextResponse> => {
   try {
     const targetUrl = buildTargetUrl(request, path);
@@ -53,7 +62,7 @@ const proxy = async (request: NextRequest, path: string[]): Promise<NextResponse
 
     return new NextResponse(payload, {
       status: upstreamResponse.status,
-      headers: upstreamResponse.headers,
+      headers: toClientHeaders(upstreamResponse.headers),
     });
   } catch (error) {
     console.error("API proxy error", error);
