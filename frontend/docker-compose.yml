@@ -6,6 +6,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
+      API_URL: ${API_URL:?API_URL is required}
     ports:
       - "3000:3000"
     restart: unless-stopped

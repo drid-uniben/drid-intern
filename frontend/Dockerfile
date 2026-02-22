@@ -32,7 +32,7 @@ COPY --from=prod-deps --chown=appuser:appgroup /app/node_modules ./node_modules
 COPY --from=build --chown=appuser:appgroup /app/.next ./.next
 COPY --from=build --chown=appuser:appgroup /app/public ./public
 COPY --from=build --chown=appuser:appgroup /app/package.json ./package.json
-COPY --from=build --chown=appuser:appgroup /app/next.config.ts ./next.config.ts
+COPY --from=build --chown=appuser:appgroup /app/next.config.mjs ./next.config.mjs
 EXPOSE 3000
 USER appuser
 CMD ["sh", "-c", "node_modules/.bin/next start -H 0.0.0.0 -p ${PORT:-3000}"]

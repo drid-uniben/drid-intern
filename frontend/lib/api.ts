@@ -1,20 +1,27 @@
 import { useAppStore } from "@/lib/store";
 
-const resolveApiBase = (): string => {
-  const raw = process.env.NEXT_PUBLIC_API_URL ?? process.env.API_BASE ?? "http://localhost:3000/api/v1";
+const resolveServerApiBase = (): string | null => {
+  const raw = process.env.API_URL;
 
-  if (raw.startsWith("http://") || raw.startsWith("https://")) {
-    return raw.replace(/\/$/, "");
+  if (!raw || raw.trim().length === 0) {
+    return null;
   }
 
-  if (raw.startsWith("/")) {
-    return `http://localhost:3000${raw}`.replace(/\/$/, "");
+  const normalized = raw.trim();
+  if (!normalized.startsWith("http://") && !normalized.startsWith("https://")) {
+    return null;
   }
 
-  return `http://${raw}`.replace(/\/$/, "");
+  return normalized.replace(/\/$/, "");
 };
 
-const API_BASE = resolveApiBase();
+const resolveApiBase = (): string | null => {
+  if (typeof window === "undefined") {
+    return resolveServerApiBase();
+  }
+
+  return "/api/proxy";
+};
 
 interface ApiResult<T> {
   success: boolean;
@@ -62,13 +69,20 @@ const clearTokens = (): void => {
   useAppStore.getState().clearSession();
 };
 
+const SERVICE_UNAVAILABLE_MESSAGE = "Service temporarily unavailable";
+
 const refreshSession = async (): Promise<boolean> => {
   const refreshToken = readRefreshToken();
   if (!refreshToken) {
     return false;
   }
 
-  const response = await fetch(`${API_BASE}/auth/refresh`, {
+  const apiBase = resolveApiBase();
+  if (!apiBase) {
+    return false;
+  }
+
+  const response = await fetch(`${apiBase}/auth/refresh`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refreshToken }),
@@ -92,13 +106,18 @@ const request = async <T>(
   options: RequestInit,
   retryOnUnauthorized: boolean,
 ): Promise<ApiResult<T>> => {
+  const apiBase = resolveApiBase();
+  if (!apiBase) {
+    return { success: false, error: SERVICE_UNAVAILABLE_MESSAGE };
+  }
+
   const token = readAccessToken();
   const headers = {
     ...(options.headers ?? {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
-  const response = await fetch(`${API_BASE}${path}`, {
+  const response = await fetch(`${apiBase}${path}`, {
     ...options,
     headers,
     cache: "no-store",
@@ -115,8 +134,13 @@ const request = async <T>(
 };
 
 export const apiGet = async <T>(path: string, token?: string): Promise<ApiResult<T>> => {
+  const apiBase = resolveApiBase();
+  if (!apiBase) {
+    return { success: false, error: SERVICE_UNAVAILABLE_MESSAGE };
+  }
+
   if (token) {
-    const response = await fetch(`${API_BASE}${path}`, {
+    const response = await fetch(`${apiBase}${path}`, {
       cache: "no-store",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -127,8 +151,13 @@ export const apiGet = async <T>(path: string, token?: string): Promise<ApiResult
 };
 
 export const apiPost = async <T>(path: string, payload: unknown, token?: string): Promise<ApiResult<T>> => {
+  const apiBase = resolveApiBase();
+  if (!apiBase) {
+    return { success: false, error: SERVICE_UNAVAILABLE_MESSAGE };
+  }
+
   if (token) {
-    const response = await fetch(`${API_BASE}${path}`, {
+    const response = await fetch(`${apiBase}${path}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -157,8 +186,13 @@ export const apiPost = async <T>(path: string, payload: unknown, token?: string)
 };
 
 export const apiPatch = async <T>(path: string, payload: unknown, token?: string): Promise<ApiResult<T>> => {
+  const apiBase = resolveApiBase();
+  if (!apiBase) {
+    return { success: false, error: SERVICE_UNAVAILABLE_MESSAGE };
+  }
+
   if (token) {
-    const response = await fetch(`${API_BASE}${path}`, {
+    const response = await fetch(`${apiBase}${path}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
