@@ -71,9 +71,9 @@ const envSchema = z.object({
   SMTP_USER: z.preprocess(cleanStringValue, z.string().min(2)),
   SMTP_PASS: z.preprocess(cleanStringValue, z.string().min(8)),
   EMAIL_FROM: z.preprocess(cleanStringValue, z.string().email()),
-  ADMIN_NAME: z.string().min(2).default("System Administrator"),
-  ADMIN_EMAIL: z.string().email().default("admin@example.com"),
-  ADMIN_PASSWORD: z.string().min(8).default("ChangeMeNow123!"),
+  ADMIN_NAME: z.string().min(2),
+  ADMIN_EMAIL: z.string().email(),
+  ADMIN_PASSWORD: z.string().min(8),
 });
 
 const parsed = envSchema.safeParse(process.env);

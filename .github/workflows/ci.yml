@@ -82,6 +82,10 @@ jobs:
       SMTP_PASS: testpassword
       EMAIL_FROM: test@example.com
 
+      ADMIN_NAME: CI Admin
+      ADMIN_EMAIL: ci-admin@example.com
+      ADMIN_PASSWORD: ci-admin-password
+
     steps:
 
       - name: Checkout
