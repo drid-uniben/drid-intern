@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { apiGet } from "@/lib/api";
 import { Cohort } from "@/types/domain";
+import CountdownTimer from "./countdown/countdown-timer";
 
 export const metadata: Metadata = {
   title: "Current Cohort — DRID Internship",
-  description: "View the active DRID internship cohort details and deadline.",
+  description: "View the active DRID internship cohort, deadline, and countdown.",
 };
 
 export default async function CurrentCohortPage() {
@@ -33,13 +34,34 @@ export default async function CurrentCohortPage() {
           DRID Internship {cohort.year} Cohort {cohort.cohortNumber}
         </h1>
         <div className="mt-4 space-y-2" style={{ color: "var(--text-secondary)" }}>
-          <p>Status: <span className="badge badge-success ml-1">{cohort.status}</span></p>
-          <p>Submission deadline: {new Date(cohort.deadlineAt).toLocaleString()}</p>
+          <p>
+            Status: <span className="badge badge-success ml-1">{cohort.status}</span>
+          </p>
+          <p>
+            Submission deadline:{" "}
+            {new Date(cohort.deadlineAt).toLocaleDateString(undefined, {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </p>
         </div>
+
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link className="btn-glass" href="/cohort/current/countdown">View countdown</Link>
-          <Link className="btn-gradient" href="/cohort/current/challenges">View challenges</Link>
+          <Link className="btn-gradient" href="/cohort/current/challenges">
+            View challenges
+          </Link>
         </div>
+      </div>
+
+      {/* Embedded countdown */}
+      <div className="glass rounded-2xl px-8 pt-6 pb-8" style={{ animation: "slideUp 0.5s ease-out 0.15s both" }}>
+        <h2 className="text-xl font-semibold">
+          Countdown to <span className="gradient-text">Deadline</span>
+        </h2>
+        <CountdownTimer deadlineAt={cohort.deadlineAt} />
       </div>
     </main>
   );
