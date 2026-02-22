@@ -15,7 +15,7 @@ jobs:
     env:                           
       DEPLOY_HOST: drid-uniben.org
       DEPLOY_USER: github-drid-deploy-user
-      BUILD_REQUIRED: 1
+      BUILD_REQUIRED: 2
 
     steps:
       - name: Determine if build is needed
