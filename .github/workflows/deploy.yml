@@ -2,7 +2,11 @@ name: Deploy Container
 
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   build:
@@ -36,7 +40,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_PAT }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
         if: env.BUILD_REQUIRED == '1'
@@ -49,12 +53,13 @@ jobs:
             -t $IMAGE:latest \
             .
                   
-            - name: Deploy via SSH
-              uses: appleboy/ssh-action@v0.1.9
-              with:
-                host: ${{ env.DEPLOY_HOST }}
-                username: ${{ env.DEPLOY_USER }}
-                key: ${{ secrets.DEPLOY_KEY }}
-                script: |
-                  cd drid-intern
-                  ./deploy-drid-intern.sh 
+      - name: Deploy via SSH
+        if: 1==2 # Temporarily disable deployment for testing
+        uses: appleboy/ssh-action@v0.1.9
+        with:
+          host: ${{ env.DEPLOY_HOST }}
+          username: ${{ env.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            cd drid-intern
+            ./deploy-drid-intern.sh 
