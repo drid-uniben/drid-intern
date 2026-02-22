@@ -12,6 +12,9 @@ jobs:
     name: Frontend lint/build
     runs-on: ubuntu-latest
 
+    env:
+      NEXT_PUBLIC_API_URL: http://localhost:4000/api/v1
+
     defaults:
       run:
         working-directory: frontend
