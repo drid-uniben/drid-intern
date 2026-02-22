@@ -21,7 +21,14 @@ export const app = express();
 
 app.set("trust proxy", env.TRUST_PROXY);
 
-app.use(cors({ origin: env.FRONTEND_URL, credentials: true }));
+const allowedOrigins = env.ALLOWED_ORIGINS
+  ? env.ALLOWED_ORIGINS
+      .split(",")
+      .map((origin) => origin.trim())
+      .filter((origin) => origin.length > 0)
+  : [env.FRONTEND_URL];
+
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 app.use(requestLogger);

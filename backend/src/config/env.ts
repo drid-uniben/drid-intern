@@ -60,6 +60,7 @@ const envSchema = z.object({
   SHADOW_DATABASE_URL: z.preprocess(cleanOptionalUrlValue, z.string().url().optional()),
   MONGODB_URI: z.preprocess(cleanOptionalUrlValue, z.string().url().optional()),
   FRONTEND_URL: z.preprocess(cleanStringValue, z.string().url()),
+  ALLOWED_ORIGINS: z.preprocess(cleanOptionalUrlValue, z.string().optional()),
   API_URL: z.preprocess(cleanStringValue, z.string().url()),
   LOG_LEVEL: z.preprocess(cleanStringValue, z.enum(["error", "warn", "info", "debug"]))
     .default("info"),
