@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, use, useState, useMemo } from "react";
+import { FormEvent, use, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
@@ -211,8 +211,8 @@ export default function ReviewerSubmissionPage({ params }: { params: Promise<{ s
                   onChange={(e) => setRecommendation(e.target.value as Recommendation)}
                 >
                   <option value="" disabled>Select a recommendation...</option>
-                  <option value="RECOMMEND">🟢 Recommend for Next Stage</option>
-                  <option value="NEUTRAL">🟡 Neutral / Borderline</option>
+                  <option value="RECOMMEND">🟢 Recommend</option>
+                  <option value="NEUTRAL">🟡 Neutral</option>
                   <option value="DO_NOT_RECOMMEND">🔴 Do Not Recommend</option>
                 </select>
                 <p className="text-xs text-[var(--text-muted)] mt-1.5">* This is a recommendation, admins make the final decision.</p>

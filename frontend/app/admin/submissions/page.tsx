@@ -21,10 +21,16 @@ interface SubmissionItem {
   averageRating?: number | null;
 }
 
+interface PaginatedResponse<T> {
+  data: T[];
+  meta: { total: number; page: number; limit: number; totalPages: number };
+}
+
 interface Reviewer {
   id: string;
   fullName: string;
   email: string;
+  role: string;
 }
 
 export default function AdminSubmissionsPage() {
@@ -37,23 +43,32 @@ export default function AdminSubmissionsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isExporting, setIsExporting] = useState(false);
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
-  const { data: submissions = [], isLoading: isLoadingSubmissions } = useAuthedQuery<SubmissionItem[]>({
-    queryKey: ["admin-submissions", statusFilter, searchQuery],
+  const { data: queryResult, isLoading: isLoadingSubmissions } = useAuthedQuery<PaginatedResponse<SubmissionItem>>({
+    queryKey: ["admin-submissions", statusFilter, searchQuery, page],
     queryFn: async (token) => {
       const params = new URLSearchParams();
       if (statusFilter) params.append("status", statusFilter);
       if (searchQuery) params.append("search", searchQuery);
+      params.append("page", page.toString());
+      params.append("limit", limit.toString());
       const query = params.toString() ? `?${params.toString()}` : "";
       const result = await apiGet<SubmissionItem[]>(`/submissions${query}`, token);
-      return result.success && result.data ? result.data : [];
+      return result.success && result.data 
+        ? { data: result.data, meta: result.meta as NonNullable<PaginatedResponse<SubmissionItem>['meta']> } 
+        : { data: [], meta: { total: 0, page: 1, limit: 10, totalPages: 1 } };
     },
   });
+
+  const submissions = queryResult?.data || [];
+  const meta = queryResult?.meta || { total: 0, page: 1, limit: 10, totalPages: 1 };
 
   const { data: users = [] } = useAuthedQuery<Reviewer[]>({
     queryKey: ["admin-users"],
     queryFn: async (token) => {
-      const result = await apiGet<any[]>("/users", token);
+      const result = await apiGet<Reviewer[]>("/users", token);
       return result.success && result.data
         ? result.data.filter(u => u.role === "REVIEWER" || u.role === "ADMIN")
         : [];
@@ -144,32 +159,58 @@ export default function AdminSubmissionsPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4" style={{ animation: "fadeIn 0.5s ease-out" }}>
-        <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
-          <h1 className="text-3xl font-bold whitespace-nowrap hidden lg:block">
+      {/* Page Header */}
+      <div className="mb-8" style={{ animation: "fadeIn 0.5s ease-out" }}>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold">
             <span className="gradient-text">Submissions</span>
           </h1>
-          <div className="hidden lg:block h-6 w-px bg-[var(--glass-border)] ml-2"></div>
 
-          <div className="relative flex-grow md:max-w-xs">
+          <button
+            className="btn-glass !py-2 !px-4 text-sm flex items-center gap-2"
+            onClick={handleExportCsv}
+            disabled={isExporting}
+          >
+            {isExporting ? "Exporting..." : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Export CSV
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-col md:flex-row gap-3">
+          <div className="relative w-full md:max-w-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <svg className="h-4 w-4 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
             <input
               type="text"
               placeholder="Search by name or email..."
-              className="input-glass !py-1.5 !pl-9 !pr-3 text-sm w-full"
+              className="input-glass !py-2 !pl-9 !pr-3 text-sm w-full"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1); // Reset page on query
+              }}
             />
           </div>
 
           <select
-            className="input-glass !py-1.5 !px-3 text-sm min-w-[140px]"
+            className="input-glass !py-2 !px-3 text-sm w-full md:w-48"
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1); // Reset page on filter
+            }}
           >
             <option value="">All Statuses</option>
             <option value="submitted">Submitted</option>
@@ -177,44 +218,43 @@ export default function AdminSubmissionsPage() {
             <option value="accepted">Accepted</option>
             <option value="rejected">Rejected</option>
           </select>
-
-          <button
-            className="btn-glass !py-1.5 !px-4 text-sm flex items-center gap-2 whitespace-nowrap"
-            onClick={handleExportCsv}
-            disabled={isExporting}
-          >
-            {isExporting ? "Exporting..." : (
-              <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                Export CSV
-              </>
-            )}
-          </button>
         </div>
+      </div>
 
-        {selectedIds.size > 0 && (
-          <div className="flex items-center gap-3 p-2 bg-[var(--glass-bg-subtle)] border border-[var(--glass-border)] rounded-xl shadow-sm backdrop-blur-md" style={{ animation: "slideInLeft 0.3s ease-out" }}>
-            <span className="text-sm font-medium px-2">{selectedIds.size} selected</span>
+      {/* Bulk Actions Bar */}
+      {selectedIds.size > 0 && (
+        <div
+          className="mb-6 flex items-center justify-between gap-4 p-3 bg-[var(--glass-bg-subtle)] border border-[var(--glass-border)] rounded-xl shadow-sm"
+          style={{ animation: "slideInLeft 0.3s ease-out" }}
+        >
+          <span className="text-sm font-medium">
+            {selectedIds.size} selected
+          </span>
+
+          <div className="flex items-center gap-2">
             <select
-              className="input-glass !py-1.5 !px-3 text-sm min-w-[150px]"
+              className="input-glass !py-2 !px-3 text-sm min-w-[160px]"
               value={selectedReviewerId}
               onChange={(e) => setSelectedReviewerId(e.target.value)}
             >
               <option value="" disabled>Assign to...</option>
               {users.map(u => (
-                <option key={u.id} value={u.id}>{u.fullName}</option>
+                <option key={u.id} value={u.id}>
+                  {u.fullName}
+                </option>
               ))}
             </select>
+
             <button
-              className="btn-gradient !py-1.5 !px-4 text-sm"
+              className="btn-gradient !py-2 !px-4 text-sm"
               disabled={!selectedReviewerId || assignMutation.isPending}
               onClick={() => assignMutation.mutate()}
             >
               {assignMutation.isPending ? "Assigning..." : "Assign"}
             </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {!authInitialized || isLoading ? (
         <div className="mt-6"><ListSkeleton count={5} /></div>
@@ -308,6 +348,29 @@ export default function AdminSubmissionsPage() {
                 )}
               </tbody>
             </table>
+          </div>
+
+          <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--glass-border)] bg-[var(--glass-bg)]">
+            <span className="text-sm text-[var(--text-secondary)]">
+              Showing {submissions.length > 0 ? (meta.page - 1) * meta.limit + 1 : 0} to{" "}
+              {Math.min(meta.page * meta.limit, meta.total)} of {meta.total} results
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={meta.page <= 1}
+                className="px-3 py-1.5 text-sm rounded bg-[var(--input-bg)] border border-[var(--glass-border)] disabled:opacity-50 hover:bg-[var(--glass-bg-subtle)] transition-colors text-[var(--text-primary)]"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                disabled={meta.page >= meta.totalPages}
+                className="px-3 py-1.5 text-sm rounded bg-[var(--input-bg)] border border-[var(--glass-border)] disabled:opacity-50 hover:bg-[var(--glass-bg-subtle)] transition-colors text-[var(--text-primary)]"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </m.div>
       )}

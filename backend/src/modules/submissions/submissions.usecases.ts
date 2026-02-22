@@ -104,7 +104,10 @@ export const listSubmissions = async (filters: {
   category?: string;
   status?: "submitted" | "under_review" | "accepted" | "rejected";
   search?: string;
-}): Promise<Submission[]> => {
+  reviewerId?: string;
+  page?: number;
+  limit?: number;
+}): Promise<{ data: Submission[]; meta: { total: number; page: number; limit: number; totalPages: number } }> => {
   let submissions = await submissionRepository.list();
 
   if (filters.cohort) {
@@ -124,7 +127,28 @@ export const listSubmissions = async (filters: {
     submissions = submissions.filter((item) => item.email.toLowerCase().includes(term) || item.fullName.toLowerCase().includes(term));
   }
 
-  return submissions;
+  if (filters.reviewerId) {
+    submissions = submissions.filter((item) => item.assignedReviewerId === filters.reviewerId);
+  }
+
+  const total = submissions.length;
+  const page = filters.page && filters.page > 0 ? filters.page : 1;
+  const limit = filters.limit && filters.limit > 0 ? filters.limit : (total > 0 ? total : 10);
+
+  if (filters.page || filters.limit) {
+    const start = (page - 1) * limit;
+    submissions = submissions.slice(start, start + limit);
+  }
+
+  return {
+    data: submissions,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    }
+  };
 };
 
 export const updateSubmissionStatus = async (

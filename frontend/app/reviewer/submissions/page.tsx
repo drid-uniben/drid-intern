@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import * as m from "motion/react-m";
 import { apiGet } from "@/lib/api";
 import { useAuthedQuery } from "@/hooks/useAuthedQuery";
@@ -15,16 +16,28 @@ interface QueueItem {
   status: string;
 }
 
+interface PaginatedResponse<T> {
+  data: T[];
+  meta: { total: number; page: number; limit: number; totalPages: number };
+}
+
 export default function ReviewerQueuePage() {
   const authInitialized = useAppStore((state) => state.authInitialized);
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
-  const { data: items = [], isLoading } = useAuthedQuery<QueueItem[]>({
-    queryKey: ["reviewer-queue"],
+  const { data: queryResult, isLoading } = useAuthedQuery<PaginatedResponse<QueueItem>>({
+    queryKey: ["reviewer-queue", page],
     queryFn: async (token) => {
-      const result = await apiGet<QueueItem[]>("/submissions", token);
-      return result.success && result.data ? result.data : [];
+      const result = await apiGet<QueueItem[]>(`/submissions?page=${page}&limit=${limit}`, token);
+      return result.success && result.data
+        ? { data: result.data, meta: result.meta as NonNullable<PaginatedResponse<QueueItem>['meta']> }
+        : { data: [], meta: { total: 0, page: 1, limit: 10, totalPages: 1 } };
     },
   });
+
+  const items: QueueItem[] = queryResult?.data || [];
+  const meta = queryResult?.meta || { total: 0, page: 1, limit: 10, totalPages: 1 };
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-12">
@@ -108,6 +121,29 @@ export default function ReviewerQueuePage() {
                 )}
               </tbody>
             </table>
+          </div>
+
+          <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--glass-border)] bg-[var(--glass-bg)]">
+            <span className="text-sm text-[var(--text-secondary)]">
+              Showing {items.length > 0 ? (meta.page - 1) * meta.limit + 1 : 0} to{" "}
+              {Math.min(meta.page * meta.limit, meta.total)} of {meta.total} results
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={meta.page <= 1}
+                className="px-3 py-1.5 text-sm rounded bg-[var(--input-bg)] border border-[var(--glass-border)] disabled:opacity-50 hover:bg-[var(--glass-bg-subtle)] transition-colors text-[var(--text-primary)]"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                disabled={meta.page >= meta.totalPages}
+                className="px-3 py-1.5 text-sm rounded bg-[var(--input-bg)] border border-[var(--glass-border)] disabled:opacity-50 hover:bg-[var(--glass-bg-subtle)] transition-colors text-[var(--text-primary)]"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </m.div>
       )}

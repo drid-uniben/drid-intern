@@ -201,7 +201,7 @@ export default function AdminSubmissionDetailPage({ params }: { params: Promise<
 
                 {review.criteriaScores && review.criteriaScores.length > 0 && (
                   <div className="space-y-2 mb-4">
-                    {review.criteriaScores.map((score: any) => (
+                    {review.criteriaScores.map((score: { label: string, score: number, comment?: string }) => (
                       <div key={score.label} className="bg-[var(--glass-bg-subtle)] px-3 py-2 rounded-lg flex justify-between items-center text-sm border border-[var(--glass-border)]">
                         <span className="text-[var(--text-secondary)] font-medium">{score.label}</span>
                         <span className="font-semibold text-[var(--text-primary)]">{score.score}/10</span>
@@ -212,7 +212,7 @@ export default function AdminSubmissionDetailPage({ params }: { params: Promise<
 
                 <div className="pt-4 border-t border-[var(--glass-border)]">
                   <h3 className="text-xs font-semibold mb-2 text-[var(--text-muted)] uppercase">General Comment:</h3>
-                  <p className="text-sm italic text-[var(--text-secondary)]">"{review.comment}"</p>
+                  <p className="text-sm italic text-[var(--text-secondary)]">&quot;{review.comment}&quot;</p>
                 </div>
               </div>
             ))

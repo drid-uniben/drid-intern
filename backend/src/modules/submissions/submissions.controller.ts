@@ -37,7 +37,7 @@ submissionsRouter.post("/", validateBody(createSubmissionSchema), async (req, re
   }
 });
 submissionsRouter.get("/export", authenticate, authorize("ADMIN"), validateQuery(listSubmissionsQuerySchema), async (req: AuthenticatedRequest, res) => {
-  const submissions = await listSubmissions({
+  const { data: submissions } = await listSubmissions({
     cohort: typeof req.query.cohort === "string" ? req.query.cohort : undefined,
     category: typeof req.query.category === "string" ? req.query.category : undefined,
     status: typeof req.query.status === "string" ? req.query.status as "submitted" | "under_review" | "accepted" | "rejected" : undefined,
@@ -76,20 +76,17 @@ submissionsRouter.get("/:submissionId", authenticate, async (req, res) => {
 });
 
 submissionsRouter.get("/", authenticate, authorize("ADMIN", "REVIEWER"), validateQuery(listSubmissionsQuerySchema), async (req: AuthenticatedRequest, res) => {
-  const submissions = await listSubmissions({
+  const { data, meta } = await listSubmissions({
     cohort: typeof req.query.cohort === "string" ? req.query.cohort : undefined,
     category: typeof req.query.category === "string" ? req.query.category : undefined,
     status: typeof req.query.status === "string" ? req.query.status as "submitted" | "under_review" | "accepted" | "rejected" : undefined,
     search: typeof req.query.search === "string" ? req.query.search : undefined,
+    reviewerId: req.auth?.role === "REVIEWER" ? req.auth.userId : undefined,
+    page: req.query.page ? Number(req.query.page) : undefined,
+    limit: req.query.limit ? Number(req.query.limit) : undefined,
   });
 
-  // Filter if it's a reviewer (they only see their assigned submissions unless explicitly requested otherwise, though per our design REVIEWERS only see theirs)
-  let filteredSubmissions = submissions;
-  if (req.auth?.role === "REVIEWER") {
-    filteredSubmissions = submissions.filter((s) => s.assignedReviewerId === req.auth!.userId);
-  }
-
-  res.json({ success: true, data: filteredSubmissions });
+  res.json({ success: true, data, meta });
 });
 
 submissionsRouter.post("/bulk-assign", authenticate, authorize("ADMIN"), validateBody(bulkAssignSchema), async (req, res, next) => {

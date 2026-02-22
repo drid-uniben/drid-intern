@@ -24,6 +24,8 @@ export const listSubmissionsQuerySchema = z.object({
   category: z.string().trim().min(2).max(50).optional(),
   status: z.enum(["submitted", "under_review", "accepted", "rejected"]).optional(),
   search: z.string().optional(),
+  page: z.string().regex(/^\d+$/).optional(),
+  limit: z.string().regex(/^\d+$/).optional(),
 });
 
 export const bulkAssignSchema = z.object({

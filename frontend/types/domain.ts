@@ -18,7 +18,7 @@ export interface Review {
   submissionId: string;
   reviewerUserId: string;
   rating: number;
-  criteriaScores: any | null; // using any for JSON structure { label, score, comment }
+  criteriaScores: { label: string, score: number, comment?: string }[] | null;
   recommendation: Recommendation | null;
   comment: string;
   createdAt: string;
