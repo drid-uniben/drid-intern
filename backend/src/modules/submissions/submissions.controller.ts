@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { authenticate, authorize } from "../../middleware/auth";
+import { authenticate, authorize, AuthenticatedRequest } from "../../middleware/auth";
 import { validateBody, validateQuery } from "../../middleware/validate";
-import { createSubmissionSchema, listSubmissionsQuerySchema } from "./submissions.schemas";
-import { createSubmission, getSubmissionById, listSubmissions, updateSubmissionStatus } from "./submissions.usecases";
+import { bulkAssignSchema, createSubmissionSchema, listSubmissionsQuerySchema } from "./submissions.schemas";
+import { assignReviewerToSubmissions, createSubmission, getSubmissionById, listSubmissions, updateSubmissionStatus } from "./submissions.usecases";
 
 export const submissionsRouter = Router();
 
@@ -47,7 +47,7 @@ submissionsRouter.get("/:submissionId", authenticate, async (req, res) => {
   res.json({ success: true, data: submission });
 });
 
-submissionsRouter.get("/", authenticate, authorize("ADMIN", "REVIEWER"), validateQuery(listSubmissionsQuerySchema), async (req, res) => {
+submissionsRouter.get("/", authenticate, authorize("ADMIN", "REVIEWER"), validateQuery(listSubmissionsQuerySchema), async (req: AuthenticatedRequest, res) => {
   const submissions = await listSubmissions({
     cohort: typeof req.query.cohort === "string" ? req.query.cohort : undefined,
     category: typeof req.query.category === "string" ? req.query.category : undefined,
@@ -55,7 +55,28 @@ submissionsRouter.get("/", authenticate, authorize("ADMIN", "REVIEWER"), validat
     search: typeof req.query.search === "string" ? req.query.search : undefined,
   });
 
-  res.json({ success: true, data: submissions });
+  // Filter if it's a reviewer (they only see their assigned submissions unless explicitly requested otherwise, though per our design REVIEWERS only see theirs)
+  let filteredSubmissions = submissions;
+  if (req.auth?.role === "REVIEWER") {
+    filteredSubmissions = submissions.filter((s) => s.assignedReviewerId === req.auth!.userId);
+  }
+
+  res.json({ success: true, data: filteredSubmissions });
+});
+
+submissionsRouter.post("/bulk-assign", authenticate, authorize("ADMIN"), validateBody(bulkAssignSchema), async (req, res, next) => {
+  try {
+    const { submissionIds, reviewerId } = req.body;
+    const updatedSubmissions = await assignReviewerToSubmissions(submissionIds, reviewerId);
+    res.json({ success: true, data: updatedSubmissions });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to assign reviewers";
+    if (message === "Reviewer not found" || message === "User is not authorized to review submissions") {
+      res.status(400).json({ success: false, error: message });
+      return;
+    }
+    next(error);
+  }
 });
 
 submissionsRouter.patch("/:submissionId/accept", authenticate, authorize("ADMIN"), async (req, res) => {

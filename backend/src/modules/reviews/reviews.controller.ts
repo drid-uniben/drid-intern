@@ -13,10 +13,19 @@ reviewsRouter.post("/", authenticate, authorize("REVIEWER", "ADMIN"), validateBo
     return;
   }
 
+  let finalRating = req.body.rating;
+
+  if (req.body.criteriaScores && req.body.criteriaScores.length > 0) {
+    const totalScore = req.body.criteriaScores.reduce((sum: number, criterion: any) => sum + criterion.score, 0);
+    finalRating = Math.round(totalScore / req.body.criteriaScores.length);
+  }
+
   const review = await reviewRepository.create({
     submissionId: req.body.submissionId,
     reviewerUserId: req.auth!.userId,
-    rating: req.body.rating,
+    rating: finalRating || 0,
+    criteriaScores: req.body.criteriaScores || null,
+    recommendation: req.body.recommendation || null,
     comment: req.body.comment,
   });
 

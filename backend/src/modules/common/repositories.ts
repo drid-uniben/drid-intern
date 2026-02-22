@@ -95,12 +95,13 @@ const toSubmission = (submission: {
   category: string;
   fullName: string;
   email: string;
-  githubUrl: string | null;
-  deploymentUrl: string | null;
-  figmaUrl: string | null;
+  repoUrl: string | null;
+  liveLink: string | null;
+  designLinks: string | null;
   message: string;
   status: "submitted" | "under_review" | "accepted" | "rejected";
   averageRating: number | null;
+  assignedReviewerId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }): Submission => ({
@@ -110,12 +111,13 @@ const toSubmission = (submission: {
   category: submission.category,
   fullName: submission.fullName,
   email: submission.email,
-  githubUrl: submission.githubUrl,
-  deploymentUrl: submission.deploymentUrl,
-  figmaUrl: submission.figmaUrl,
+  repoUrl: submission.repoUrl,
+  liveLink: submission.liveLink,
+  designLinks: submission.designLinks,
   message: submission.message,
   status: submission.status,
   averageRating: submission.averageRating,
+  assignedReviewerId: submission.assignedReviewerId,
   createdAt: submission.createdAt.toISOString(),
   updatedAt: submission.updatedAt.toISOString(),
 });
@@ -125,6 +127,8 @@ const toReview = (review: {
   submissionId: string;
   reviewerUserId: string;
   rating: number;
+  criteriaScores: Prisma.JsonValue;
+  recommendation: "RECOMMEND" | "NEUTRAL" | "DO_NOT_RECOMMEND" | null;
   comment: string;
   createdAt: Date;
 }): Review => ({
@@ -132,6 +136,8 @@ const toReview = (review: {
   submissionId: review.submissionId,
   reviewerUserId: review.reviewerUserId,
   rating: review.rating,
+  criteriaScores: review.criteriaScores,
+  recommendation: review.recommendation,
   comment: review.comment,
   createdAt: review.createdAt.toISOString(),
 });
@@ -389,9 +395,9 @@ export const submissionRepository = {
         category: payload.category,
         fullName: payload.fullName,
         email: payload.email.toLowerCase(),
-        githubUrl: payload.githubUrl,
-        deploymentUrl: payload.deploymentUrl,
-        figmaUrl: payload.figmaUrl,
+        repoUrl: payload.repoUrl,
+        liveLink: payload.liveLink,
+        designLinks: payload.designLinks,
         message: payload.message,
         status: payload.status,
       },
@@ -408,12 +414,13 @@ export const submissionRepository = {
         category: submission.category,
         fullName: submission.fullName,
         email: submission.email.toLowerCase(),
-        githubUrl: submission.githubUrl,
-        deploymentUrl: submission.deploymentUrl,
-        figmaUrl: submission.figmaUrl,
+        repoUrl: submission.repoUrl,
+        liveLink: submission.liveLink,
+        designLinks: submission.designLinks,
         message: submission.message,
         status: submission.status,
         averageRating: submission.averageRating,
+        assignedReviewerId: submission.assignedReviewerId,
       },
     });
 
@@ -432,11 +439,13 @@ export const reviewRepository = {
         submissionId: payload.submissionId,
         reviewerUserId: payload.reviewerUserId,
         rating: payload.rating,
+        criteriaScores: payload.criteriaScores as Prisma.InputJsonValue,
+        recommendation: payload.recommendation,
         comment: payload.comment,
       },
     });
 
-    return toReview(review);
+    return toReview(review as any); // using any here because toReview's input types for string enums vs prisma string enums can be slightly annoying, and we know it conforms
   },
 };
 

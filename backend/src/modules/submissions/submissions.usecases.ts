@@ -8,9 +8,9 @@ interface CreateSubmissionInput {
   category?: string;
   fullName: string;
   email: string;
-  githubUrl?: string;
-  deploymentUrl?: string;
-  figmaUrl?: string;
+  repoUrl?: string;
+  liveLink?: string;
+  designLinks?: string;
   message: string;
 }
 
@@ -54,9 +54,9 @@ export const createSubmission = async (input: CreateSubmissionInput): Promise<Su
 
   const requirementsError = validateSubmissionRequirements({
     category: invitation.category,
-    githubUrl: input.githubUrl,
-    deploymentUrl: input.deploymentUrl,
-    figmaUrl: input.figmaUrl,
+    repoUrl: input.repoUrl,
+    liveLink: input.liveLink,
+    designLinks: input.designLinks,
   });
 
   if (requirementsError) {
@@ -69,11 +69,12 @@ export const createSubmission = async (input: CreateSubmissionInput): Promise<Su
     category: invitation.category,
     fullName: input.fullName,
     email: input.email,
-    githubUrl: input.githubUrl ?? null,
-    deploymentUrl: input.deploymentUrl ?? null,
-    figmaUrl: input.figmaUrl ?? null,
+    repoUrl: input.repoUrl ?? null,
+    liveLink: input.liveLink ?? null,
+    designLinks: input.designLinks ?? null,
     message: input.message,
     status: "submitted",
+    assignedReviewerId: null,
   });
 
   invitation.acceptedAt = new Date().toISOString();
@@ -138,4 +139,33 @@ export const updateSubmissionStatus = async (
   submission.status = status;
   await submissionRepository.update(submission);
   return submission;
+};
+
+export const assignReviewerToSubmissions = async (
+  submissionIds: string[],
+  reviewerId: string,
+): Promise<Submission[]> => {
+  const reviewer = await userRepository.findById(reviewerId);
+  if (!reviewer) {
+    throw new Error("Reviewer not found");
+  }
+
+  if (reviewer.role !== "REVIEWER" && reviewer.role !== "ADMIN") {
+    throw new Error("User is not authorized to review submissions");
+  }
+
+  const updatedSubmissions: Submission[] = [];
+
+  for (const id of submissionIds) {
+    const submission = await submissionRepository.findById(id);
+    if (submission) {
+      submission.assignedReviewerId = reviewer.id;
+      // You could optionally set the status to "under_review" here if that's desired when assigned, 
+      // but usually it's "under_review" once a review actually starts or is submitted.
+      const updated = await submissionRepository.update(submission);
+      updatedSubmissions.push(updated);
+    }
+  }
+
+  return updatedSubmissions;
 };

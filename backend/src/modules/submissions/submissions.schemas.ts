@@ -5,9 +5,9 @@ export const createSubmissionSchema = z.object({
   category: z.string().trim().min(2).max(50).optional(),
   fullName: z.string().min(2),
   email: z.string().email(),
-  githubUrl: z.string().url().optional(),
-  deploymentUrl: z.string().url().optional(),
-  figmaUrl: z.string().url().optional(),
+  repoUrl: z.string().url().optional(),
+  liveLink: z.string().url().optional(),
+  designLinks: z.string().max(2000).optional(),
   message: z.string().max(2000).default(""),
 }).superRefine((data, ctx) => {
   if (!data.invitationToken && !data.category) {
@@ -26,36 +26,41 @@ export const listSubmissionsQuerySchema = z.object({
   search: z.string().optional(),
 });
 
+export const bulkAssignSchema = z.object({
+  submissionIds: z.array(z.string().uuid()).min(1),
+  reviewerId: z.string().uuid(),
+});
+
 const submissionRequirementsSchema = z.object({
   category: z.string().trim().min(2).max(50),
-  githubUrl: z.string().url().optional(),
-  deploymentUrl: z.string().url().optional(),
-  figmaUrl: z.string().url().optional(),
+  repoUrl: z.string().url().optional(),
+  liveLink: z.string().url().optional(),
+  designLinks: z.string().optional(),
 }).superRefine((data, ctx) => {
   const isDesign = data.category.toLowerCase().includes("design");
 
-  if (isDesign && !data.figmaUrl) {
+  if (isDesign && !data.designLinks) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: "Figma URL is required for design submissions",
-      path: ["figmaUrl"],
+      message: "Design link (e.g. Figma URL) is required for design submissions",
+      path: ["designLinks"],
     });
   }
 
-  if (!isDesign && (!data.githubUrl || !data.deploymentUrl)) {
+  if (!isDesign && (!data.repoUrl || !data.liveLink)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: "GitHub URL and Deployment URL are required for this challenge",
-      path: ["githubUrl"],
+      message: "Repository URL and Live Deployment URL are required for this challenge",
+      path: ["repoUrl"],
     });
   }
 });
 
 export const validateSubmissionRequirements = (payload: {
   category: string;
-  githubUrl?: string;
-  deploymentUrl?: string;
-  figmaUrl?: string;
+  repoUrl?: string;
+  liveLink?: string;
+  designLinks?: string;
 }): string | null => {
   const result = submissionRequirementsSchema.safeParse(payload);
   if (result.success) {
