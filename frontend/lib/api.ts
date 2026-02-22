@@ -1,17 +1,19 @@
 import { useAppStore } from "@/lib/store";
 
 const resolveApiBase = (): string => {
-  const raw = process.env.NEXT_PUBLIC_API_URL ?? process.env.API_BASE ?? "http://localhost:3000/api/v1";
+  const raw = process.env.NEXT_PUBLIC_API_URL;
 
-  if (raw.startsWith("http://") || raw.startsWith("https://")) {
-    return raw.replace(/\/$/, "");
+  if (!raw || raw.trim().length === 0) {
+    throw new Error("Missing required env: NEXT_PUBLIC_API_URL");
   }
 
-  if (raw.startsWith("/")) {
-    return `http://localhost:3000${raw}`.replace(/\/$/, "");
+  const normalized = raw.trim();
+
+  if (!normalized.startsWith("http://") && !normalized.startsWith("https://")) {
+    throw new Error("Invalid NEXT_PUBLIC_API_URL: must start with http:// or https://");
   }
 
-  return `http://${raw}`.replace(/\/$/, "");
+  return normalized.replace(/\/$/, "");
 };
 
 const API_BASE = resolveApiBase();
