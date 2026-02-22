@@ -10,6 +10,7 @@ import { CardSkeleton } from "@/components/ui/LoadingSkeleton";
 import { AutoStatusBadge } from "@/components/ui/StatusBadge";
 import { BackButton } from "@/components/ui/BackButton";
 import { useAppStore } from "@/lib/store";
+import { CohortDeadlineEditor } from "@/components/admin/CohortDeadlineEditor";
 
 export default function AdminCohortDetailPage({ params }: { params: Promise<{ cohortId: string }> }) {
   const { cohortId } = use(params);
@@ -60,6 +61,11 @@ export default function AdminCohortDetailPage({ params }: { params: Promise<{ co
       </div>
 
       <div className="glass rounded-2xl p-6" style={{ animation: "slideUp 0.5s ease-out 0.1s both" }}>
+        <h2 className="text-lg font-semibold mb-3">Deadline Management</h2>
+        <CohortDeadlineEditor cohortId={cohortId} deadlineAt={cohort.deadlineAt} />
+      </div>
+
+      <div className="glass rounded-2xl p-6" style={{ animation: "slideUp 0.5s ease-out 0.15s both" }}>
         <h2 className="text-lg font-semibold mb-3">Status Management</h2>
         <CohortStatusActions cohortId={cohortId} initialStatus={cohort.status} />
       </div>
