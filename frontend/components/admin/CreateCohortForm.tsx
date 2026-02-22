@@ -1,11 +1,13 @@
 "use client";
 
 import { FormEvent, useReducer } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
-import { apiPost } from "@/lib/api";
+import { apiGet, apiPost } from "@/lib/api";
 import { useAuthToken } from "@/hooks/useAuth";
+import { ChallengeCategory } from "@/types/domain";
 
 interface State {
   year: string;
@@ -35,7 +37,15 @@ function reducer(state: State, action: Action): State {
 }
 
 export function CreateCohortForm() {
+  const router = useRouter();
   const token = useAuthToken();
+  const { data: categories = [] } = useQuery({
+    queryKey: ["challenge-categories"],
+    queryFn: async () => {
+      const result = await apiGet<ChallengeCategory[]>("/challenge-categories");
+      return result.success && result.data ? result.data : [];
+    },
+  });
   const [state, dispatch] = useReducer(reducer, {
     year: String(new Date().getFullYear()),
     cohortNumber: "1",
@@ -52,16 +62,22 @@ export function CreateCohortForm() {
       if (Number.isNaN(parsedDeadline.getTime())) {
         throw new Error("Please provide a valid deadline date and time");
       }
+
+      const allowedCategories = categories.map((item) => item.name);
+      if (allowedCategories.length === 0) {
+        throw new Error("No challenge categories available. Please add categories first.");
+      }
+
       return apiPost("/cohorts", {
         year: Number(state.year),
         cohortNumber: Number(state.cohortNumber),
         deadlineAt: parsedDeadline.toISOString(),
-        allowedCategories: ["backend", "frontend", "fullstack", "design"],
+        allowedCategories,
       }, token);
     },
     onSuccess: (result) => {
       if (result.success) {
-        dispatch({ type: "RESULT", message: "Cohort created successfully! 🎉", isSuccess: true });
+        router.push("/admin/cohorts");
       } else {
         dispatch({ type: "RESULT", message: result.error ?? "Failed to create cohort", isSuccess: false });
       }

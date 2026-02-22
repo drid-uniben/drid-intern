@@ -1,12 +1,14 @@
 "use client";
 
 import { use } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPatch } from "@/lib/api";
 import { useAuthToken } from "@/hooks/useAuth";
+import { useAuthedQuery } from "@/hooks/useAuthedQuery";
 import { CardSkeleton } from "@/components/ui/LoadingSkeleton";
 import { AutoStatusBadge } from "@/components/ui/StatusBadge";
 import { BackButton } from "@/components/ui/BackButton";
+import { useAppStore } from "@/lib/store";
 
 interface SubmissionDetail {
   id: string;
@@ -20,11 +22,12 @@ interface SubmissionDetail {
 export default function AdminSubmissionDetailPage({ params }: { params: Promise<{ submissionId: string }> }) {
   const { submissionId } = use(params);
   const token = useAuthToken();
+  const authInitialized = useAppStore((state) => state.authInitialized);
   const queryClient = useQueryClient();
 
-  const { data: submission, isLoading } = useQuery({
+  const { data: submission, isLoading } = useAuthedQuery<SubmissionDetail | null>({
     queryKey: ["admin-submission", submissionId],
-    queryFn: async () => {
+    queryFn: async (token) => {
       const result = await apiGet<SubmissionDetail>(`/submissions/${submissionId}`, token);
       return result.success && result.data ? result.data : null;
     },
@@ -52,7 +55,7 @@ export default function AdminSubmissionDetailPage({ params }: { params: Promise<
     },
   });
 
-  if (isLoading) {
+  if (!authInitialized || isLoading) {
     return (
       <main className="mx-auto max-w-3xl px-6 py-12">
         <BackButton fallbackHref="/admin" />

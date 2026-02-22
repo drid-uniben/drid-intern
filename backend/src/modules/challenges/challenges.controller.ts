@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authenticate, authorize } from "../../middleware/auth";
 import { validateBody, validateQuery } from "../../middleware/validate";
-import { challengeRepository, cohortRepository } from "../common/repositories";
+import { challengeCategoryRepository, challengeRepository, cohortRepository } from "../common/repositories";
 import { createChallengeSchema, listChallengesQuerySchema, updateChallengeSchema } from "./challenges.schemas";
 
 export const challengesRouter = Router();
@@ -48,10 +48,17 @@ challengesRouter.get("/:challengeId", async (req, res) => {
 });
 
 challengesRouter.post("/", authenticate, authorize("ADMIN"), validateBody(createChallengeSchema), async (req, res) => {
-  const existing = await challengeRepository.findLatestByCohortAndCategory(req.body.cohortId, req.body.category);
+  const category = req.body.category.trim().toLowerCase();
+  const activeCategories = await challengeCategoryRepository.listActive();
+  if (!activeCategories.some((item) => item.name === category)) {
+    res.status(400).json({ success: false, error: "Invalid challenge category" });
+    return;
+  }
+
+  const existing = await challengeRepository.findLatestByCohortAndCategory(req.body.cohortId, category);
   const challenge = await challengeRepository.create({
     cohortId: req.body.cohortId,
-    category: req.body.category,
+    category,
     title: req.body.title,
     description: req.body.description,
     version: existing ? existing.version + 1 : 1,

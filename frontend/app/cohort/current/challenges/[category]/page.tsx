@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { apiGet } from "@/lib/api";
 import { Challenge } from "@/types/domain";
 import { BackButton } from "@/components/ui/BackButton";
+import Link from "next/link";
+import { getSubmissionRequirements } from "@/lib/submissionRequirements";
 
 export const metadata: Metadata = {
   title: "Challenge Details — DRID Internship",
@@ -26,11 +28,22 @@ export default async function ChallengeDetailPage({ params }: { params: Promise<
     );
   }
 
+  const requirements = getSubmissionRequirements(challenge.category);
+
   return (
     <main className="mx-auto max-w-3xl space-y-6 px-6 py-12">
       <BackButton fallbackHref="/cohort/current/challenges" />
       <div className="glass rounded-3xl p-8" style={{ animation: "slideUp 0.5s ease-out" }}>
-        <span className="badge badge-accent">{challenge.category}</span>
+        <div className="flex items-center justify-between gap-3">
+          <span className="badge badge-accent">{challenge.category}</span>
+          <Link
+            href={`/cohort/current/challenges/${challenge.category}/submit`}
+            className="btn-gradient !py-1.5 !px-3 !text-sm !rounded-lg"
+            aria-label={`Submit ${challenge.category} challenge`}
+          >
+            Submit
+          </Link>
+        </div>
         <h1 className="mt-3 text-3xl font-bold capitalize gradient-text">
           {challenge.category} Challenge
         </h1>
@@ -42,6 +55,14 @@ export default async function ChallengeDetailPage({ params }: { params: Promise<
       >
         {challenge.description}
       </article>
+      <div className="glass rounded-2xl p-6" style={{ animation: "slideUp 0.5s ease-out 0.3s both" }}>
+        <h2 className="text-lg font-semibold">{requirements.heading}</h2>
+        <ul className="mt-3 space-y-2 text-sm" style={{ color: "var(--text-secondary)" }}>
+          {requirements.points.map((point) => (
+            <li key={point}>• {point}</li>
+          ))}
+        </ul>
+      </div>
     </main>
   );
 }

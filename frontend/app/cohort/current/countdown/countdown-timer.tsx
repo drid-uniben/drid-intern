@@ -30,7 +30,7 @@ function CountdownSegment({ value, label, index }: { value: number; label: strin
       className="countdown-segment glass rounded-2xl p-6 text-center min-w-[100px]"
       style={{ animationDelay: `${index * 0.1 + 0.2}s` }}
     >
-      <p className="text-4xl md:text-5xl font-bold gradient-text tabular-nums">
+      <p className="text-4xl md:text-5xl font-bold gradient-text tabular-nums" suppressHydrationWarning>
         {String(value).padStart(2, "0")}
       </p>
       <p className="mt-2 text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
@@ -75,7 +75,7 @@ export default function CountdownTimer({ deadlineAt }: { deadlineAt: string }) {
   ];
 
   return (
-    <div className="mt-8 flex flex-wrap items-start justify-center gap-3 md:gap-4" suppressHydrationWarning>
+    <div className="mt-8 flex flex-wrap items-start justify-center gap-3 md:gap-4">
       {segments.map((seg, i) => (
         <div key={seg.label} className="flex items-start gap-3 md:gap-4">
           <CountdownSegment value={seg.value} label={seg.label} index={i} />

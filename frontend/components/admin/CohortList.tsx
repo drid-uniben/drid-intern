@@ -1,26 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
 import * as m from "motion/react-m";
 import { apiGet } from "@/lib/api";
 import { Cohort } from "@/types/domain";
-import { useAuthToken } from "@/hooks/useAuth";
+import { useAuthedQuery } from "@/hooks/useAuthedQuery";
 import { ListSkeleton } from "@/components/ui/LoadingSkeleton";
 import { AutoStatusBadge } from "@/components/ui/StatusBadge";
+import { useAppStore } from "@/lib/store";
 
 export function CohortList() {
-  const token = useAuthToken();
+  const authInitialized = useAppStore((state) => state.authInitialized);
 
-  const { data: cohorts = [], isLoading } = useQuery({
+  const { data: cohorts = [], isLoading } = useAuthedQuery<Cohort[]>({
     queryKey: ["admin-cohorts"],
-    queryFn: async () => {
+    queryFn: async (token) => {
       const result = await apiGet<Cohort[]>("/cohorts", token);
       return result.success && result.data ? result.data : [];
     },
   });
 
-  if (isLoading) return <ListSkeleton count={3} />;
+  if (!authInitialized || isLoading) return <ListSkeleton count={3} />;
 
   return (
     <div className="space-y-3">

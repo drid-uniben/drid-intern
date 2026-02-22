@@ -1,6 +1,7 @@
 "use client";
 
+import { useAppStore } from "@/lib/store";
+
 export function useAuthToken() {
-  if (typeof window === "undefined") return undefined;
-  return localStorage.getItem("accessToken") ?? undefined;
+  return useAppStore((state) => state.accessToken ?? undefined);
 }

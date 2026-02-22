@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authenticate, authorize } from "../../middleware/auth";
 import { validateBody } from "../../middleware/validate";
-import { cohortRepository } from "../common/repositories";
+import { challengeCategoryRepository, cohortRepository } from "../common/repositories";
 import { createCohortSchema, updateCohortSchema, updateStatusSchema } from "./cohorts.schemas";
 
 export const cohortsRouter = Router();
@@ -31,12 +31,20 @@ cohortsRouter.get("/:cohortId", async (req, res) => {
 });
 
 cohortsRouter.post("/", authenticate, authorize("ADMIN"), validateBody(createCohortSchema), async (req, res) => {
+  const allowedCategories = req.body.allowedCategories.map((item: string) => item.trim().toLowerCase());
+  const activeCategories = await challengeCategoryRepository.listActive();
+  const activeNames = new Set(activeCategories.map((item) => item.name));
+  if (allowedCategories.some((item: string) => !activeNames.has(item))) {
+    res.status(400).json({ success: false, error: "Invalid allowed category provided" });
+    return;
+  }
+
   const cohort = await cohortRepository.create({
     year: req.body.year,
     cohortNumber: req.body.cohortNumber,
     deadlineAt: req.body.deadlineAt,
     status: "DRAFT",
-    allowedCategories: req.body.allowedCategories,
+    allowedCategories,
   });
 
   res.status(201).json({ success: true, data: cohort });
@@ -52,7 +60,16 @@ cohortsRouter.patch("/:cohortId", authenticate, authorize("ADMIN"), validateBody
   if (req.body.year !== undefined) cohort.year = req.body.year;
   if (req.body.cohortNumber !== undefined) cohort.cohortNumber = req.body.cohortNumber;
   if (req.body.deadlineAt !== undefined) cohort.deadlineAt = req.body.deadlineAt;
-  if (req.body.allowedCategories !== undefined) cohort.allowedCategories = req.body.allowedCategories;
+  if (req.body.allowedCategories !== undefined) {
+    const allowedCategories = req.body.allowedCategories.map((item: string) => item.trim().toLowerCase());
+    const activeCategories = await challengeCategoryRepository.listActive();
+    const activeNames = new Set(activeCategories.map((item) => item.name));
+    if (allowedCategories.some((item: string) => !activeNames.has(item))) {
+      res.status(400).json({ success: false, error: "Invalid allowed category provided" });
+      return;
+    }
+    cohort.allowedCategories = allowedCategories;
+  }
 
   await cohortRepository.update(cohort);
   res.json({ success: true, data: cohort });

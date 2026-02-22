@@ -10,15 +10,15 @@ body:
         Use this for maintenance work that isn't a bug or feature.
 
         Contributors: please follow the claim/disclaim + PR linking flow:
-        https://github.com/drid-uniben/DridCon_Ticket/blob/dev/CONTRIBUTING.md
+        https://github.com/drid-uniben/drid-intern/blob/staging/CONTRIBUTING.md
 
   - type: dropdown
     id: area
     attributes:
       label: Area
       options:
-        - client
-        - server
+        - frontend
+        - backend
         - CI / GitHub Actions
         - docs
         - repo maintenance

@@ -1,15 +1,23 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
-import { apiPost } from "@/lib/api";
+import { apiGet, apiPost } from "@/lib/api";
 import { useAuthToken } from "@/hooks/useAuth";
+import { ChallengeCategory } from "@/types/domain";
 
 export function InvitationBulkForm({ cohortId }: { cohortId: string }) {
   const token = useAuthToken();
-  const [category, setCategory] = useState<"backend" | "frontend" | "fullstack" | "design">("backend");
+  const { data: categories = [] } = useQuery({
+    queryKey: ["challenge-categories"],
+    queryFn: async () => {
+      const result = await apiGet<ChallengeCategory[]>("/challenge-categories");
+      return result.success && result.data ? result.data : [];
+    },
+  });
+  const [category, setCategory] = useState("");
   const [emails, setEmails] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -21,9 +29,14 @@ export function InvitationBulkForm({ cohortId }: { cohortId: string }) {
         .map((email) => email.trim())
         .filter((email) => email.length > 0);
 
+      const selectedCategory = category || categories[0]?.name;
+      if (!selectedCategory) {
+        throw new Error("No challenge categories available. Please add categories first.");
+      }
+
       return apiPost<{ id: string }[]>(
         "/invitations",
-        { cohortId, category, emails: parsedEmails, expiresInDays: 7 },
+        { cohortId, category: selectedCategory, emails: parsedEmails, expiresInDays: 7 },
         token,
       );
     },
@@ -50,11 +63,12 @@ export function InvitationBulkForm({ cohortId }: { cohortId: string }) {
       <form className="mt-4 space-y-4" onSubmit={onSubmit}>
         <div>
           <label htmlFor="invite-bulk-category" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Category</label>
-          <select id="invite-bulk-category" className="input-glass" value={category} onChange={(e) => setCategory(e.target.value as typeof category)}>
-            <option value="backend">Backend</option>
-            <option value="frontend">Frontend</option>
-            <option value="fullstack">Fullstack</option>
-            <option value="design">Design</option>
+          <select id="invite-bulk-category" className="input-glass" value={category || categories[0]?.name || ""} onChange={(e) => setCategory(e.target.value)}>
+            {categories.map((item) => (
+              <option key={item.id} value={item.name}>
+                {item.name}
+              </option>
+            ))}
           </select>
         </div>
         <div>

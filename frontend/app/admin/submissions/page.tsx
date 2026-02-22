@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
 import * as m from "motion/react-m";
 import { apiGet } from "@/lib/api";
-import { useAuthToken } from "@/hooks/useAuth";
+import { useAuthedQuery } from "@/hooks/useAuthedQuery";
 import { ListSkeleton } from "@/components/ui/LoadingSkeleton";
 import { AutoStatusBadge } from "@/components/ui/StatusBadge";
+import { useAppStore } from "@/lib/store";
 
 interface SubmissionItem {
   id: string;
@@ -17,11 +17,11 @@ interface SubmissionItem {
 }
 
 export default function AdminSubmissionsPage() {
-  const token = useAuthToken();
+  const authInitialized = useAppStore((state) => state.authInitialized);
 
-  const { data: items = [], isLoading } = useQuery({
+  const { data: items = [], isLoading } = useAuthedQuery<SubmissionItem[]>({
     queryKey: ["admin-submissions"],
-    queryFn: async () => {
+    queryFn: async (token) => {
       const result = await apiGet<SubmissionItem[]>("/submissions", token);
       return result.success && result.data ? result.data : [];
     },
@@ -33,7 +33,7 @@ export default function AdminSubmissionsPage() {
         <span className="gradient-text">Submissions</span>
       </h1>
 
-      {isLoading ? (
+      {!authInitialized || isLoading ? (
         <div className="mt-6"><ListSkeleton count={4} /></div>
       ) : (
         <div className="mt-6 space-y-3">

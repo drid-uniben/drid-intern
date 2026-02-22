@@ -1,10 +1,11 @@
 "use client";
 
 import * as m from "motion/react-m";
-import { useTheme } from "@/app/providers";
+import { useAppStore } from "@/lib/store";
 
 export function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme();
+  const theme = useAppStore((state) => state.theme);
+  const toggleTheme = useAppStore((state) => state.toggleTheme);
 
   return (
     <button

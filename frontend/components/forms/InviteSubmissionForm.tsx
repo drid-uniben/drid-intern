@@ -51,25 +51,24 @@ export function InviteSubmissionForm({ token }: { token: string }) {
     error: null,
   });
 
-  const { isLoading: validating } = useQuery({
+  const { data: invitation, isLoading: validating } = useQuery({
     queryKey: ["invitation", token],
     queryFn: async () => {
       const result = await apiGet<InvitationValidation>(`/invitations/${token}`);
-      if (result.success && result.data) {
-        dispatch({ type: "SET_FIELD", field: "email", value: result.data.email });
-        dispatch({ type: "SET_FIELD", field: "category", value: result.data.category });
-        return result.data;
-      }
-      return null;
+      return result.success && result.data ? result.data : null;
     },
   });
+
+  const emailValue = invitation?.email ?? state.email;
+  const categoryValue = invitation?.category ?? state.category;
+  const isDesign = categoryValue === "design";
 
   const submitMutation = useMutation({
     mutationFn: async () => {
       return apiPost("/submissions", {
         invitationToken: token,
         fullName: state.fullName,
-        email: state.email,
+        email: emailValue,
         githubUrl: state.githubUrl || undefined,
         deploymentUrl: state.deploymentUrl || undefined,
         figmaUrl: state.figmaUrl || undefined,
@@ -98,8 +97,6 @@ export function InviteSubmissionForm({ token }: { token: string }) {
     return <ListSkeleton count={4} />;
   }
 
-  const isDesign = state.category === "design";
-
   return (
     <form className="space-y-4" onSubmit={onSubmit}>
       <div>
@@ -108,7 +105,7 @@ export function InviteSubmissionForm({ token }: { token: string }) {
       </div>
       <div>
         <label htmlFor="invite-email" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Email</label>
-        <input id="invite-email" className="input-glass" placeholder="you@example.com" type="email" value={state.email} onChange={(e) => dispatch({ type: "SET_FIELD", field: "email", value: e.target.value })} required />
+        <input id="invite-email" className="input-glass" placeholder="you@example.com" type="email" value={emailValue} onChange={(e) => dispatch({ type: "SET_FIELD", field: "email", value: e.target.value })} required />
       </div>
 
       {isDesign ? (

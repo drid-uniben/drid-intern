@@ -22,13 +22,6 @@ enum CohortStatus {
   ARCHIVED
 }
 
-enum Category {
-  backend
-  frontend
-  fullstack
-  design
-}
-
 enum SubmissionStatus {
   submitted
   under_review
@@ -67,7 +60,7 @@ model Cohort {
   cohortNumber      Int
   deadlineAt        DateTime
   status            CohortStatus
-  allowedCategories Category[]
+  allowedCategories String[]
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
   challenges        Challenge[]
@@ -80,7 +73,7 @@ model Cohort {
 model Challenge {
   id          String   @id @default(uuid())
   cohortId    String
-  category    Category
+  category    String
   title       String
   description String
   version     Int
@@ -95,7 +88,7 @@ model Invitation {
   id         String      @id @default(uuid())
   email      String
   cohortId   String
-  category   Category
+  category   String
   token      String      @unique
   expiresAt  DateTime
   acceptedAt DateTime?
@@ -110,7 +103,7 @@ model Submission {
   id            String           @id @default(uuid())
   cohortId      String
   invitationId  String           @unique
-  category      Category
+  category      String
   fullName      String
   email         String
   githubUrl     String?
@@ -127,6 +120,16 @@ model Submission {
 
   @@index([cohortId, category, status])
   @@index([email])
+}
+
+model ChallengeCategory {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
 }
 
 model Review {

@@ -51,10 +51,16 @@ const cleanOptionalUrlValue = (value: unknown): unknown => {
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(4000),
+  TRUST_PROXY: z.preprocess(cleanStringValue, z.enum(["true", "false"]).default("true")).transform((value) => value === "true"),
+  RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
+  RATE_LIMIT_MAX: z.coerce.number().int().positive().default(120),
+  AUTH_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(20),
+  SUBMISSION_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(12),
   DATABASE_URL: z.preprocess(cleanOptionalUrlValue, z.string().url().optional()),
   SHADOW_DATABASE_URL: z.preprocess(cleanOptionalUrlValue, z.string().url().optional()),
   MONGODB_URI: z.preprocess(cleanOptionalUrlValue, z.string().url().optional()),
   FRONTEND_URL: z.preprocess(cleanStringValue, z.string().url()),
+  ALLOWED_ORIGINS: z.preprocess(cleanOptionalUrlValue, z.string().optional()),
   API_URL: z.preprocess(cleanStringValue, z.string().url()),
   LOG_LEVEL: z.preprocess(cleanStringValue, z.enum(["error", "warn", "info", "debug"]))
     .default("info"),
@@ -65,9 +71,9 @@ const envSchema = z.object({
   SMTP_USER: z.preprocess(cleanStringValue, z.string().min(2)),
   SMTP_PASS: z.preprocess(cleanStringValue, z.string().min(8)),
   EMAIL_FROM: z.preprocess(cleanStringValue, z.string().email()),
-  ADMIN_NAME: z.string().min(2).default("System Administrator"),
-  ADMIN_EMAIL: z.string().email().default("admin@example.com"),
-  ADMIN_PASSWORD: z.string().min(8).default("ChangeMeNow123!"),
+  ADMIN_NAME: z.string().min(2),
+  ADMIN_EMAIL: z.string().email(),
+  ADMIN_PASSWORD: z.string().min(8),
 });
 
 const parsed = envSchema.safeParse(process.env);

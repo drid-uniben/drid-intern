@@ -1,0 +1,44 @@
+#!/usr/bin/env sh
+set -eu
+
+if [ "${SKIP_PRECOMMIT:-}" = "1" ]; then
+	echo "SKIP_PRECOMMIT=1 set, skipping pre-commit checks."
+	exit 0
+fi
+
+STAGED_FILES="$(git diff --cached --name-only)"
+
+run_frontend=false
+run_backend=false
+
+if echo "$STAGED_FILES" | grep -qE '^frontend/'; then
+	run_frontend=true
+fi
+
+if echo "$STAGED_FILES" | grep -qE '^backend/'; then
+	run_backend=true
+fi
+
+if echo "$STAGED_FILES" | grep -qE '^(package.json|pnpm-lock.yaml|docker-compose.yml|Dockerfile|\.github/workflows/)'; then
+	run_frontend=true
+	run_backend=true
+fi
+
+if [ "$run_frontend" = false ] && [ "$run_backend" = false ]; then
+	echo "No frontend/backend changes staged. Skipping pre-commit checks."
+	exit 0
+fi
+
+echo "Running pre-commit checks..."
+
+if [ "$run_frontend" = true ]; then
+	echo "- frontend: pnpm lint"
+	pnpm --dir frontend lint
+fi
+
+if [ "$run_backend" = true ]; then
+	echo "- backend: pnpm lint"
+	pnpm --dir backend lint
+fi
+
+echo "Pre-commit checks passed."

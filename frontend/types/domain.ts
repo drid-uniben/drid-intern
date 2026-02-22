@@ -6,13 +6,13 @@ export interface Cohort {
   cohortNumber: number;
   deadlineAt: string;
   status: "DRAFT" | "PENDING_APPROVAL" | "ACTIVE" | "CLOSED" | "ARCHIVED";
-  allowedCategories: Array<"backend" | "frontend" | "fullstack" | "design">;
+  allowedCategories: string[];
 }
 
 export interface Challenge {
   id: string;
   cohortId: string;
-  category: "backend" | "frontend" | "fullstack" | "design";
+  category: string;
   title: string;
   description: string;
   version: number;
@@ -21,8 +21,16 @@ export interface Challenge {
 export interface InvitationValidation {
   email: string;
   token: string;
-  category: "backend" | "frontend" | "fullstack" | "design";
+  category: string;
   cohort: Cohort;
+}
+
+export interface ChallengeCategory {
+  id: string;
+  name: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface SessionUser {

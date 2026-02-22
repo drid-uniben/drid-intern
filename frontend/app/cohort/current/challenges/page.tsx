@@ -19,17 +19,32 @@ export default async function ChallengeListPage() {
       </h1>
       <div className="mt-6 space-y-4">
         {challenges.map((challenge, i) => (
-          <Link
+          <div
             key={challenge.id}
-            href={`/cohort/current/challenges/${challenge.category}`}
-            className="glass block rounded-2xl p-5 transition-all duration-300 hover:scale-[1.01]"
+            className="glass rounded-2xl p-5"
             style={{ animation: `slideUp 0.5s ease-out ${0.1 + i * 0.1}s both` }}
           >
-            <div className="flex items-center gap-3">
-              <span className="badge badge-accent">{challenge.category}</span>
-              <h2 className="text-xl font-semibold">{challenge.title}</h2>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="badge badge-accent">{challenge.category}</span>
+                <h2 className="text-xl font-semibold">{challenge.title}</h2>
+              </div>
+              <Link
+                href={`/cohort/current/challenges/${challenge.category}/submit`}
+                className="btn-glass !py-1.5 !px-3 !text-sm !rounded-lg"
+                aria-label={`Submit ${challenge.category} challenge`}
+                title="Submit challenge"
+              >
+                Submit
+              </Link>
             </div>
-          </Link>
+            <Link
+              href={`/cohort/current/challenges/${challenge.category}`}
+              className="mt-3 inline-block text-sm gradient-text font-medium"
+            >
+              View challenge details →
+            </Link>
+          </div>
         ))}
       </div>
     </main>

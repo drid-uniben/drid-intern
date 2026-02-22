@@ -1,13 +1,15 @@
 "use client";
 
 import { FormEvent, use, useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
 import { apiGet, apiPost } from "@/lib/api";
 import { useAuthToken } from "@/hooks/useAuth";
+import { useAuthedQuery } from "@/hooks/useAuthedQuery";
 import { CardSkeleton } from "@/components/ui/LoadingSkeleton";
 import { BackButton } from "@/components/ui/BackButton";
+import { useAppStore } from "@/lib/store";
 
 interface SubmissionDetail {
   id: string;
@@ -19,14 +21,15 @@ interface SubmissionDetail {
 export default function ReviewerSubmissionPage({ params }: { params: Promise<{ submissionId: string }> }) {
   const { submissionId } = use(params);
   const token = useAuthToken();
+  const authInitialized = useAppStore((state) => state.authInitialized);
   const [rating, setRating] = useState("8");
   const [comment, setComment] = useState("");
   const [resultMessage, setResultMessage] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const { data: submission, isLoading } = useQuery({
+  const { data: submission, isLoading } = useAuthedQuery<SubmissionDetail | null>({
     queryKey: ["reviewer-submission", submissionId],
-    queryFn: async () => {
+    queryFn: async (token) => {
       const result = await apiGet<SubmissionDetail>(`/submissions/${submissionId}`, token);
       return result.success && result.data ? result.data : null;
     },
@@ -57,7 +60,7 @@ export default function ReviewerSubmissionPage({ params }: { params: Promise<{ s
     mutation.mutate();
   };
 
-  if (isLoading) {
+  if (!authInitialized || isLoading) {
     return (
       <main className="mx-auto max-w-3xl px-6 py-12">
         <BackButton fallbackHref="/reviewer" />

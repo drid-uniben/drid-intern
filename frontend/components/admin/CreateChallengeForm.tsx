@@ -2,18 +2,20 @@
 
 import Link from "next/link";
 import { FormEvent, useReducer } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
-import { apiPost } from "@/lib/api";
+import { apiGet, apiPost } from "@/lib/api";
 import { useAuthToken } from "@/hooks/useAuth";
+import { ChallengeCategory } from "@/types/domain";
 
 interface ChallengeResponse {
   id: string;
 }
 
 interface State {
-  category: "backend" | "frontend" | "fullstack" | "design";
+  category: string;
   title: string;
   description: string;
   challengeId: string | null;
@@ -40,10 +42,18 @@ function reducer(state: State, action: Action): State {
 }
 
 export function CreateChallengeForm({ cohortId }: { cohortId: string }) {
+  const router = useRouter();
   const token = useAuthToken();
   const queryClient = useQueryClient();
+  const { data: categories = [] } = useQuery({
+    queryKey: ["challenge-categories"],
+    queryFn: async () => {
+      const result = await apiGet<ChallengeCategory[]>("/challenge-categories");
+      return result.success && result.data ? result.data : [];
+    },
+  });
   const [state, dispatch] = useReducer(reducer, {
-    category: "backend",
+    category: "",
     title: "",
     description: "",
     challengeId: null,
@@ -53,12 +63,18 @@ export function CreateChallengeForm({ cohortId }: { cohortId: string }) {
 
   const mutation = useMutation({
     mutationFn: async () => {
-      return apiPost<ChallengeResponse>("/challenges", { cohortId, category: state.category, title: state.title, description: state.description }, token);
+      const selectedCategory = state.category || categories[0]?.name;
+      if (!selectedCategory) {
+        throw new Error("No challenge categories available. Please add categories first.");
+      }
+
+      return apiPost<ChallengeResponse>("/challenges", { cohortId, category: selectedCategory, title: state.title, description: state.description }, token);
     },
     onSuccess: (result) => {
       if (result.success && result.data) {
         dispatch({ type: "RESULT", message: "Challenge created successfully! 🎉", isSuccess: true, challengeId: result.data.id });
         queryClient.invalidateQueries({ queryKey: ["admin-challenges", cohortId] });
+        router.push(`/admin/cohorts/${cohortId}/challenges#existing-challenges`);
       } else {
         dispatch({ type: "RESULT", message: result.error ?? "Failed to create challenge", isSuccess: false });
       }
@@ -77,11 +93,12 @@ export function CreateChallengeForm({ cohortId }: { cohortId: string }) {
       <form className="mt-4 space-y-4" onSubmit={onSubmit}>
         <div>
           <label htmlFor="challenge-category" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Category</label>
-          <select id="challenge-category" className="input-glass" value={state.category} onChange={(e) => dispatch({ type: "SET_FIELD", field: "category", value: e.target.value })}>
-            <option value="backend">Backend</option>
-            <option value="frontend">Frontend</option>
-            <option value="fullstack">Fullstack</option>
-            <option value="design">Design</option>
+          <select id="challenge-category" className="input-glass" value={state.category || categories[0]?.name || ""} onChange={(e) => dispatch({ type: "SET_FIELD", field: "category", value: e.target.value })}>
+            {categories.map((category) => (
+              <option key={category.id} value={category.name}>
+                {category.name}
+              </option>
+            ))}
           </select>
         </div>
         <div>

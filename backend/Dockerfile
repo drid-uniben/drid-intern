@@ -17,13 +17,7 @@ ENV DATABASE_URL="postgresql://user:pass@localhost:5432/dummy?schema=public"
 RUN pnpm prisma generate
 RUN pnpm run build
 
-FROM base AS prod-deps
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --prod --frozen-lockfile
-COPY --from=build /app/dist ./dist
-COPY prisma ./prisma
-ENV DATABASE_URL="postgresql://user:pass@localhost:5432/dummy?schema=public"
-RUN pnpm prisma generate
+FROM build AS prod-deps
 
 FROM node:22-alpine AS runner
 WORKDIR /app
@@ -35,4 +29,4 @@ COPY --from=prod-deps --chown=appuser:appgroup /app/prisma ./prisma
 COPY --from=prod-deps --chown=appuser:appgroup /app/package.json ./package.json
 EXPOSE 4000
 USER appuser
-CMD ["node", "dist/index.js"]
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/index.js"]
