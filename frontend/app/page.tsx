@@ -52,7 +52,6 @@ export default async function Home() {
           >
             <Link className="btn-gradient" href="/cohort/current">View active cohort</Link>
             <Link className="btn-glass" href="/cohort/current/challenges">Browse challenges</Link>
-            <Link className="btn-glass" href="/login">Staff login</Link>
           </div>
         </section>
 
