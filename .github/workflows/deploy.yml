@@ -54,7 +54,7 @@ jobs:
             .
                   
       - name: Deploy via SSH
-        if: 1==2 # Temporarily disable deployment for testing
+        # if: 1==2 # Temporarily disable deployment for testing
         uses: appleboy/ssh-action@v0.1.9
         with:
           host: ${{ env.DEPLOY_HOST }}

@@ -5,7 +5,6 @@ ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
 RUN corepack enable
 
-
 FROM base AS backend-deps
 WORKDIR /app/backend
 COPY backend/package.json backend/pnpm-lock.yaml ./
@@ -33,8 +32,7 @@ COPY --from=backend-build --chown=appuser:appgroup /app/backend/prisma ./prisma
 COPY --from=backend-build --chown=appuser:appgroup /app/backend/package.json ./package.json
 EXPOSE 4000
 USER appuser
-CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/index.js"]
-
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && PORT=${PORT:-4000} node dist/index.js"]
 
 FROM base AS frontend-deps
 WORKDIR /app/frontend
@@ -53,6 +51,7 @@ RUN pnpm install --prod --frozen-lockfile
 FROM node:22-alpine AS frontend-runner
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
 WORKDIR /app/frontend
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 COPY --from=frontend-prod-deps --chown=appuser:appgroup /app/frontend/node_modules ./node_modules
@@ -62,4 +61,4 @@ COPY --from=frontend-build --chown=appuser:appgroup /app/frontend/package.json .
 COPY --from=frontend-build --chown=appuser:appgroup /app/frontend/next.config.ts ./next.config.ts
 EXPOSE 3000
 USER appuser
-CMD ["sh", "-c", "node_modules/.bin/next start -H 0.0.0.0 -p ${PORT:-3000}"]
+CMD ["sh", "-c", "node_modules/.bin/next start -H 0.0.0.0 -p ${PORT}"]
