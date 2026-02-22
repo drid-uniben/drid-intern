@@ -20,7 +20,7 @@ class EmailService {
 
   async sendInvitation(input: InvitationEmailInput): Promise<void> {
     await this.transporter.sendMail({
-      from: env.EMAIL_FROM,
+      from: `"DRID UNIBEN" <${process.env.EMAIL_FROM}>`,
       to: input.to,
       subject: "DRID Internship Challenge Invitation",
       html: `
