@@ -87,18 +87,28 @@ export default async function Home() {
           <h2 className="text-2xl font-semibold">Challenge Tracks</h2>
           <div className="grid gap-4 md:grid-cols-2">
             {challenges.length > 0 ? challenges.map((challenge, i) => (
-              <Link
+              <div
                 key={challenge.id}
-                href={`/cohort/current/challenges/${challenge.category}`}
-                className="glass rounded-2xl p-5 transition-all duration-300 hover:scale-[1.02]"
+                className="glass rounded-2xl p-5"
                 style={{ animation: `slideUp 0.5s ease-out ${0.6 + i * 0.1}s both` }}
               >
-                <p className="badge badge-accent text-xs">{challenge.category}</p>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="badge badge-accent text-xs">{challenge.category}</p>
+                  <Link
+                    className="btn-glass !py-1.5 !px-3 !text-sm !rounded-lg"
+                    href={`/cohort/current/challenges/${challenge.category}/submit`}
+                    aria-label={`Submit ${challenge.category} challenge`}
+                  >
+                    Submit
+                  </Link>
+                </div>
                 <h3 className="mt-2 text-lg font-semibold">{challenge.title}</h3>
-                <p className="mt-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-                  Open challenge details and submission instructions.
-                </p>
-              </Link>
+                <div className="mt-3 flex gap-3 text-sm">
+                  <Link className="gradient-text font-medium" href={`/cohort/current/challenges/${challenge.category}`}>
+                    View details →
+                  </Link>
+                </div>
+              </div>
             )) : (
               <p style={{ color: "var(--text-secondary)" }}>
                 Challenge content will appear when the cohort challenges are published.
@@ -106,17 +116,6 @@ export default async function Home() {
             )}
           </div>
         </section>
-
-        {/* Already invited */}
-        <div
-          className="glass rounded-2xl p-6 gradient-border"
-          style={{ animation: "slideUp 0.6s ease-out 0.8s both" }}
-        >
-          <h2 className="text-xl font-semibold">Already invited?</h2>
-          <p className="mt-1" style={{ color: "var(--text-secondary)" }}>
-            Use your invitation link to open the submission form directly.
-          </p>
-        </div>
       </div>
     </main>
   );

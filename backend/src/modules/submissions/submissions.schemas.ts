@@ -1,13 +1,22 @@
 import { z } from "zod";
 
 export const createSubmissionSchema = z.object({
-  invitationToken: z.string().min(10),
+  invitationToken: z.string().min(10).optional(),
+  category: z.string().trim().min(2).max(50).optional(),
   fullName: z.string().min(2),
   email: z.string().email(),
   githubUrl: z.string().url().optional(),
   deploymentUrl: z.string().url().optional(),
   figmaUrl: z.string().url().optional(),
   message: z.string().max(2000).default(""),
+}).superRefine((data, ctx) => {
+  if (!data.invitationToken && !data.category) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Either invitationToken or category is required",
+      path: ["category"],
+    });
+  }
 });
 
 export const listSubmissionsQuerySchema = z.object({
@@ -16,3 +25,42 @@ export const listSubmissionsQuerySchema = z.object({
   status: z.enum(["submitted", "under_review", "accepted", "rejected"]).optional(),
   search: z.string().optional(),
 });
+
+const submissionRequirementsSchema = z.object({
+  category: z.string().trim().min(2).max(50),
+  githubUrl: z.string().url().optional(),
+  deploymentUrl: z.string().url().optional(),
+  figmaUrl: z.string().url().optional(),
+}).superRefine((data, ctx) => {
+  const isDesign = data.category.toLowerCase().includes("design");
+
+  if (isDesign && !data.figmaUrl) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Figma URL is required for design submissions",
+      path: ["figmaUrl"],
+    });
+  }
+
+  if (!isDesign && (!data.githubUrl || !data.deploymentUrl)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "GitHub URL and Deployment URL are required for this challenge",
+      path: ["githubUrl"],
+    });
+  }
+});
+
+export const validateSubmissionRequirements = (payload: {
+  category: string;
+  githubUrl?: string;
+  deploymentUrl?: string;
+  figmaUrl?: string;
+}): string | null => {
+  const result = submissionRequirementsSchema.safeParse(payload);
+  if (result.success) {
+    return null;
+  }
+
+  return result.error.issues[0]?.message ?? "Invalid submission payload";
+};
