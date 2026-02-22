@@ -49,7 +49,7 @@ jobs:
           -H "Content-Type: application/json" \
           --data "$QUERY" https://api.github.com/graphql)
 
-        PROJECT_ID=$(echo "$RESPONSE" | jq -r '.data.repository.projectsV2.nodes[] | select(.title == "DridCon Ticket System").id')
+        PROJECT_ID=$(echo "$RESPONSE" | jq -r '.data.repository.projectsV2.nodes[] | select(.title == "drid-intern").id')
 
         if [ -z "$PROJECT_ID" ]; then
           echo "Error: Could not retrieve project ID"

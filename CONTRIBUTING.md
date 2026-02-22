@@ -1,211 +1,149 @@
 # Contributing
 
-Thanks for helping improve the DridCon Ticket System.
+Thanks for contributing to DRID Intern.
 
-This repo is a monorepo with:
+## Project structure
 
-- `client/` (Next.js frontend)
-- `server/` (Express + MongoDB backend)
+- `frontend/`: Next.js app
+- `backend/`: Express + Prisma API
 
-## Code of Conduct
+## Code of conduct
 
-This project follows the Code of Conduct in [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+Please follow [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
-## Getting set up
+## Setup
 
 Prerequisites:
 
-- Node.js (recommended 20+)
-- MongoDB access (local or hosted)
+- Node.js 20+
+- pnpm 10+
+- PostgreSQL 16+
 
 Install dependencies:
 
 ```bash
-cd server && npm install
-cd ../client && npm install
+cd backend && pnpm install
+cd ../frontend && pnpm install
 ```
 
-Note: CI uses `npm ci` (not `npm install`) in both `client/` and `server/`. If you update dependencies, make sure `package-lock.json` is updated and committed.
+Environment files:
 
-Create environment files:
-
-- Backend: `server/.env` (see the env var list in [README.md](README.md))
-- Frontend: `client/.env.local` (set `NEXT_PUBLIC_API_URL`)
+- `backend/.env` (database + auth/email settings)
+- `frontend/.env.local` (set `NEXT_PUBLIC_API_URL`)
 
 Run locally:
 
 ```bash
-cd server
-npm run dev
-
-cd ../client
-npm run dev -- -p 3001
+cd backend && pnpm dev
+cd ../frontend && pnpm dev
 ```
 
-## Branching & workflow
+## Branches and PRs
 
-- Branch from `dev`.
-- Use short, descriptive branch names, e.g. `fix/cors-local-dev`, `feat/admin-agents-list`.
-- Keep PRs focused (one feature/fix per PR when possible).
+- Branch from `main` (or the branch maintainers request for your issue).
+- Use descriptive branch names (for example `feat/invite-validation`, `fix/auth-redirect`).
+- Keep PRs focused and small when possible.
+- Link issues in PRs using `Closes #<issue-number>`.
 
-## Contribution flow (GitHub Actions)
+## Issue claim flow (automation)
 
-This repository includes workflows under `.github/workflows/` that automate parts of the contribution process (issue assignment, project-board status moves, and PR state signals). To avoid fighting the automation, follow the flow below.
+This repository includes issue/PR comment automation in `.github/workflows/` for claiming and tracking work items.
 
-### 1) Pick an issue and claim it
+### 1) Claim an issue
 
-Before you start coding:
-
-- Ensure the issue has been added to the GitHub Project named **“DridCon Ticket System”** by maintainers.
-- Ensure the issue is in **Status = Unclaimed**.
-
-To claim the issue, comment exactly:
+Comment exactly:
 
 ```text
 claim
 ```
 
-Rules:
+If the issue is in the correct project status, you will be assigned and the status moves to **Claimed**.
 
-- The comment must be only `claim` (case-insensitive; whitespace/newlines are ignored).
-- If successful, you’ll be assigned to the issue and the project Status will move to **Claimed**.
+### 2) Disclaim an issue
 
-### 2) If you can’t continue, disclaim the issue
-
-Comment exactly:
+If you can’t continue, comment exactly:
 
 ```text
 disclaim
 ```
 
-If you are assigned, automation will unassign you and move the project Status back to **Unclaimed**.
+If you’re the assignee, automation unassigns you and moves status back to **Unclaimed**.
 
-### 3) Open a PR and link it to the issue
+### 3) Link a PR to the issue
 
-- Create your branch from `dev`.
-- Open a PR targeting `dev`.
-
-Linking matters because other automation (like moving an issue to “In Review”) reads the PR body to find the related issue.
-
-Recommended:
-
-- Add `Closes #<issue-number>` in the PR description.
-
-If you are assigned to the issue, you can also link the PR by commenting on the **issue**:
+You can link by putting `Closes #<issue-number>` in the PR body, or by commenting on the issue:
 
 ```text
 propose #<pr-number>
 ```
 
-Examples that work:
+Examples accepted by automation:
 
 ```text
 propose #123
 propose PR #123
 ```
 
-If successful, automation will:
+### 4) Unlink a PR from an issue
 
-- Append `Closes #<issue-number>` to the PR body
-- Move the issue on the project board to **In Progress**
-
-### 4) Withdraw/unlink a PR (if needed)
-
-If you need to detach a PR from the issue, comment on the **issue**:
+Comment on the issue:
 
 ```text
 withdraw #<pr-number>
 ```
 
-If successful, automation removes the `Closes #<issue-number>` line and moves the issue back to **Claimed**.
+### 5) Review state labels on PRs
 
-### 5) Signal review state on the PR
-
-On the **pull request**, you can comment:
+On a PR, you can comment:
 
 ```text
 awaiting-review
 ```
 
-This will:
-
-- Add the `awaiting-review` label (and remove `awaiting-author` if present)
-- Move the linked issue on the project board to **In Review** (requires `Closes #<issue-number>` in the PR body)
-
-If you need changes and want to signal the opposite state, comment:
+or:
 
 ```text
 awaiting-author
 ```
 
-This will add the `awaiting-author` label (and remove `awaiting-review` if present).
+This updates PR labels and, when linked, can update issue project status.
+
+## Pre-commit hook
+
+This repo includes a tracked hook at `.githooks/pre-commit` to run checks for both apps.
+
+Enable once per clone:
+
+```bash
+./scripts/setup-hooks.sh
+```
 
 ## CI expectations
 
-Two CI workflows run on pull requests to `dev` and `main`:
+CI runs lint + build for both `frontend/` and `backend/`.
 
-- Client CI: `npm ci` + `npm run lint` + `npm run build` in `client/`
-- Server CI: `npm ci` + `npm run lint` + `npm run build` in `server/`
-
-Before opening a PR, run locally:
+Run before opening a PR:
 
 ```bash
-cd client && npm ci && npm run lint && npm run build
-cd ../server && npm ci && npm run lint && npm run build
+cd backend && pnpm lint && pnpm build
+cd ../frontend && pnpm lint && pnpm build
 ```
 
-## Coding standards
+## Conventions
 
-### TypeScript
-
-- Keep types explicit at module boundaries (request payloads, service interfaces).
-- Avoid `any` unless you have a strong reason.
-
-### API conventions (server)
-
-- Routes are mounted under `/api/v1` in `server/src/app.ts`.
-- Prefer adding new endpoints in the appropriate route group:
-  - `server/src/routes/auth.routes.ts`
-  - `server/src/routes/admin.routes.ts`
-  - `server/src/routes/scan.routes.ts`
-- Use existing middleware patterns for auth/rate limiting.
-
-### Frontend conventions (client)
-
-- Keep API calls centralized via `client/lib/api.ts`.
-- Use environment variables for API base URLs (`NEXT_PUBLIC_API_URL`).
-
-## Linting
-
-Run linters before opening a PR:
-
-```bash
-cd server && npm run lint
-cd ../client && npm run lint
-```
-
-Auto-fix backend lint where possible:
-
-```bash
-cd server && npm run lint:fix
-```
-
-## API documentation (Swagger)
-
-Swagger UI is served from `/api-docs` using `server/swagger.yaml`.
-
-If you change endpoints, update `server/swagger.yaml` in the same PR so the docs stay accurate.
+- Keep API client calls centralized in `frontend/lib/api.ts`.
+- Keep frontend app state in centralized stores/hooks (Zustand + React Query patterns).
+- Keep backend route/module code under `backend/src/modules/` and shared middleware in `backend/src/middleware/`.
+- Avoid introducing `any` unless justified.
 
 ## Pull request checklist
 
-- [ ] PR targets `dev`
-- [ ] Runs `server` + `client` locally without errors
-- [ ] `npm run lint` passes in both `server/` and `client/`
-- [ ] `npm run build` passes in both `server/` and `client/`
-- [ ] Updated docs (README/Swagger) if behavior or env vars changed
-- [ ] Included any migration notes (Mongo schema changes, new env vars)
+- [ ] Lint passes in `backend/` and `frontend/`
+- [ ] Build passes in `backend/` and `frontend/`
+- [ ] Docs updated when behavior/config changed
+- [ ] New env vars documented
 
 ## Security
 
-- Do not commit secrets (API keys, SMTP creds, JWT secrets).
-- If you discover a security issue, avoid opening a public issue with exploit details; share a minimal report with maintainers instead.
+- Never commit secrets.
+- Report vulnerabilities privately per [SECURITY.md](SECURITY.md).

@@ -1,6 +1,6 @@
 # Security Policy
 
-This project takes security seriously. If you believe you’ve found a security vulnerability, please report it **privately**.
+DRID Intern takes security seriously. If you find a vulnerability, please report it **privately**.
 
 ## Reporting a vulnerability (private)
 
@@ -10,16 +10,15 @@ Preferred:
 2. Click **Report a vulnerability**.
 3. Submit a private report (GitHub Security Advisory).
 
-If private vulnerability reporting is not enabled on the repository, do **not** open a public GitHub issue with exploit details. Instead:
-
-- Contact the maintainers privately via GitHub (e.g., the repository owner/maintainers’ profiles), and share a short summary + reproduction steps.
+If private reporting is unavailable, contact maintainers directly via GitHub.
+Do **not** open a public issue with exploit details.
 
 ## What to include
 
 Please include as much of the following as possible:
 
 - A clear description of the vulnerability and its impact
-- Affected component(s): `client/`, `server/`, CI/workflows
+- Affected component(s): `frontend/`, `backend/`, CI/workflows, Docker/deployment
 - Steps to reproduce (or a proof-of-concept)
 - Any relevant logs, request/response examples, or screenshots
 - Whether the issue is reliably reproducible
@@ -29,14 +28,13 @@ Please include as much of the following as possible:
 
 In-scope examples for this repo include (but are not limited to):
 
-- Authentication / authorization issues (role escalation: Admin/Agent/User)
+- Authentication / authorization issues (role escalation: Admin/Reviewer/Intern)
 - Token and cookie handling (JWT access/refresh, cookie flags, session fixation)
 - CORS and cross-site request handling
-- File upload handling (type/size validation, path traversal, unsafe file exposure)
-- QR code token generation/verification and replay/tamper resistance
-- Injection issues (NoSQL injection, command injection)
+- Invitation and submission token handling/replay protection
+- Injection issues (SQL/ORM, command injection)
 - Sensitive data exposure (PII, credentials, secrets, logs)
-- GitHub Actions/workflow security issues (token leakage, unsafe `curl`/`jq` usage, permissions)
+- GitHub Actions/workflow security issues (token leakage, unsafe script usage, over-broad permissions)
 
 Out-of-scope (unless it results in a real security impact):
 
@@ -46,12 +44,12 @@ Out-of-scope (unless it results in a real security impact):
 
 ## Supported versions
 
-Security fixes are applied to the default development branch (`dev`).
+Security fixes are applied to the default branch (`main`) and, when needed, backported by maintainers.
 
 ## Coordinated disclosure
 
 - Please keep vulnerability details private until a fix is released or maintainers confirm it’s safe to disclose.
-- We’ll acknowledge receipt and work with you on a reasonable timeline for verification and release.
+- Maintainers will acknowledge receipt and coordinate verification/remediation timelines.
 
 ## Safe testing guidelines
 
