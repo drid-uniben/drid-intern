@@ -10,7 +10,7 @@ body:
         Thanks for filing a bug report.
 
         Before you start work on this issue, please read our contribution flow:
-        https://github.com/drid-uniben/DridCon_Ticket/blob/dev/CONTRIBUTING.md
+        https://github.com/drid-uniben/drid-intern/blob/staging/CONTRIBUTING.md
 
   - type: dropdown
     id: area
@@ -18,8 +18,8 @@ body:
       label: Area
       description: Which part is affected?
       options:
-        - client (Next.js)
-        - server (Express API)
+        - frontend (Next.js)
+        - backend (Express API)
         - CI / GitHub Actions
         - docs
         - other
@@ -77,7 +77,7 @@ body:
         OS:
         Node:
         Browser (if applicable):
-        MongoDB:
+        PostgreSQL:
         Commit SHA (optional):
 
   - type: checkboxes

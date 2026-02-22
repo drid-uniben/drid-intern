@@ -5,6 +5,11 @@ Monorepo for the DRID internship platform.
 - `frontend/`: Next.js 16 app (React 19, React Query, Zustand)
 - `backend/`: Express + TypeScript API (Prisma + PostgreSQL)
 
+## Branch model
+
+- `main`: production/stable branch
+- `staging`: development/integration branch (active dev branch)
+
 ## Requirements
 
 - Node.js 20+
@@ -67,4 +72,4 @@ chmod +x .githooks/pre-commit
 
 ## CI
 
-GitHub Actions CI runs lint + build for `frontend/` and `backend/` on push/PR to `main`.
+GitHub Actions CI runs lint + build for `frontend/` and `backend/` on push/PR to `main` and `staging`.

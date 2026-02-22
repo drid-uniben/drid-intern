@@ -40,7 +40,9 @@ cd ../frontend && pnpm dev
 
 ## Branches and PRs
 
-- Branch from `main` (or the branch maintainers request for your issue).
+- `staging` is the active development branch.
+- Branch from `staging` by default.
+- Open PRs to `staging` unless maintainers explicitly ask for `main`.
 - Use descriptive branch names (for example `feat/invite-validation`, `fix/auth-redirect`).
 - Keep PRs focused and small when possible.
 - Link issues in PRs using `Closes #<issue-number>`.
