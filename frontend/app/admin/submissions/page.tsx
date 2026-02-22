@@ -34,11 +34,18 @@ export default function AdminSubmissionsPage() {
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectedReviewerId, setSelectedReviewerId] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isExporting, setIsExporting] = useState(false);
 
   const { data: submissions = [], isLoading: isLoadingSubmissions } = useAuthedQuery<SubmissionItem[]>({
-    queryKey: ["admin-submissions"],
+    queryKey: ["admin-submissions", statusFilter, searchQuery],
     queryFn: async (token) => {
-      const result = await apiGet<SubmissionItem[]>("/submissions", token);
+      const params = new URLSearchParams();
+      if (statusFilter) params.append("status", statusFilter);
+      if (searchQuery) params.append("search", searchQuery);
+      const query = params.toString() ? `?${params.toString()}` : "";
+      const result = await apiGet<SubmissionItem[]>(`/submissions${query}`, token);
       return result.success && result.data ? result.data : [];
     },
   });
@@ -95,14 +102,95 @@ export default function AdminSubmissionsPage() {
     return reviewer ? reviewer.fullName : "Unknown";
   };
 
+  const handleExportCsv = async () => {
+    if (!token) return;
+    setIsExporting(true);
+    try {
+      const params = new URLSearchParams();
+      if (statusFilter) params.append("status", statusFilter);
+      if (searchQuery) params.append("search", searchQuery);
+      const query = params.toString() ? `?${params.toString()}` : "";
+
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/submissions/export${query}`;
+
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!response.ok) throw new Error("Export failed");
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      const contentDisposition = response.headers.get("Content-Disposition");
+      let filename = `submissions_export.csv`;
+      if (contentDisposition && contentDisposition.includes("filename=")) {
+        filename = contentDisposition.split("filename=")[1].replace(/"/g, "");
+      }
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      alert("Failed to export: " + error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const isLoading = isLoadingSubmissions;
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4" style={{ animation: "fadeIn 0.5s ease-out" }}>
-        <h1 className="text-3xl font-bold">
-          <span className="gradient-text">Submissions</span>
-        </h1>
+        <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
+          <h1 className="text-3xl font-bold whitespace-nowrap hidden lg:block">
+            <span className="gradient-text">Submissions</span>
+          </h1>
+          <div className="hidden lg:block h-6 w-px bg-[var(--glass-border)] ml-2"></div>
+
+          <div className="relative flex-grow md:max-w-xs">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg className="h-4 w-4 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              placeholder="Search by name or email..."
+              className="input-glass !py-1.5 !pl-9 !pr-3 text-sm w-full"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <select
+            className="input-glass !py-1.5 !px-3 text-sm min-w-[140px]"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="">All Statuses</option>
+            <option value="submitted">Submitted</option>
+            <option value="under_review">Under Review</option>
+            <option value="accepted">Accepted</option>
+            <option value="rejected">Rejected</option>
+          </select>
+
+          <button
+            className="btn-glass !py-1.5 !px-4 text-sm flex items-center gap-2 whitespace-nowrap"
+            onClick={handleExportCsv}
+            disabled={isExporting}
+          >
+            {isExporting ? "Exporting..." : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Export CSV
+              </>
+            )}
+          </button>
+        </div>
 
         {selectedIds.size > 0 && (
           <div className="flex items-center gap-3 p-2 bg-[var(--glass-bg-subtle)] border border-[var(--glass-border)] rounded-xl shadow-sm backdrop-blur-md" style={{ animation: "slideInLeft 0.3s ease-out" }}>

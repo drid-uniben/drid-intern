@@ -36,6 +36,34 @@ submissionsRouter.post("/", validateBody(createSubmissionSchema), async (req, re
     next(error);
   }
 });
+submissionsRouter.get("/export", authenticate, authorize("ADMIN"), validateQuery(listSubmissionsQuerySchema), async (req: AuthenticatedRequest, res) => {
+  const submissions = await listSubmissions({
+    cohort: typeof req.query.cohort === "string" ? req.query.cohort : undefined,
+    category: typeof req.query.category === "string" ? req.query.category : undefined,
+    status: typeof req.query.status === "string" ? req.query.status as "submitted" | "under_review" | "accepted" | "rejected" : undefined,
+    search: typeof req.query.search === "string" ? req.query.search : undefined,
+  });
+
+  const header = [
+    "ID", "Applicant Name", "Email", "Track", "Status", "Average Score",
+    "Repository URL", "Live Deployment URL", "Design Links / Notes",
+    "Message", "Assigned Reviewer ID", "Submitted At"
+  ];
+  const rows = submissions.map(s => [
+    s.id, s.fullName, s.email, s.category, s.status, s.averageRating?.toString() || "",
+    s.repoUrl || "", s.liveLink || "", s.designLinks || "",
+    s.message || "", s.assignedReviewerId || "", s.createdAt
+  ]);
+
+  const csvContent = [
+    header.join(","),
+    ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+  ].join("\n");
+
+  res.setHeader("Content-Type", "text/csv");
+  res.setHeader("Content-Disposition", `attachment; filename="submissions_export_${new Date().toISOString().split('T')[0]}.csv"`);
+  res.send(csvContent);
+});
 
 submissionsRouter.get("/:submissionId", authenticate, async (req, res) => {
   const submission = await getSubmissionById(req.params.submissionId);
