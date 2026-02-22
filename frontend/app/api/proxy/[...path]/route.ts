@@ -56,8 +56,8 @@ const proxy = async (request: NextRequest, path: string[]): Promise<NextResponse
       headers: upstreamResponse.headers,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Proxy request failed";
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    console.error("API proxy error", error);
+    return NextResponse.json({ success: false, error: "Service temporarily unavailable" }, { status: 500 });
   }
 };
 
