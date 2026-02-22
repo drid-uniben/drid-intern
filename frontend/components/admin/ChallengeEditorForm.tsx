@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
@@ -8,17 +8,21 @@ import { useRouter } from "next/navigation";
 import { apiGet, apiPatch } from "@/lib/api";
 import { Challenge } from "@/types/domain";
 import { CardSkeleton } from "@/components/ui/LoadingSkeleton";
+import { useAuthToken } from "@/hooks/useAuth";
+import { useAppStore } from "@/lib/store";
 
 export function ChallengeEditorForm({ challengeId }: { challengeId: string }) {
   const router = useRouter();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const token = useAuthToken();
+  const authInitialized = useAppStore((state) => state.authInitialized);
+  const [titleDraft, setTitleDraft] = useState<string | null>(null);
+  const [descriptionDraft, setDescriptionDraft] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
-  const hydratedChallengeIdRef = useRef<string | null>(null);
 
   const { data: challenge, isLoading, isError } = useQuery({
     queryKey: ["challenge", challengeId],
+    enabled: authInitialized,
     queryFn: async () => {
       const result = await apiGet<Challenge>(`/challenges/${challengeId}`);
       if (result.success && result.data) {
@@ -28,24 +32,17 @@ export function ChallengeEditorForm({ challengeId }: { challengeId: string }) {
     },
   });
 
-  useEffect(() => {
-    if (!challenge) return;
-    if (hydratedChallengeIdRef.current === challenge.id) return;
-
-    setTitle(challenge.title);
-    setDescription(challenge.description);
-    hydratedChallengeIdRef.current = challenge.id;
-  }, [challenge]);
+  const title = titleDraft ?? challenge?.title ?? "";
+  const description = descriptionDraft ?? challenge?.description ?? "";
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const token = localStorage.getItem("accessToken") ?? undefined;
       return apiPatch<Challenge>(`/challenges/${challengeId}`, { title, description }, token);
     },
     onSuccess: (result) => {
       if (result.success && result.data) {
-        setTitle(result.data.title);
-        setDescription(result.data.description);
+        setTitleDraft(result.data.title);
+        setDescriptionDraft(result.data.description);
         setMessage("Challenge updated with new version! ✅");
         setIsSuccess(true);
         if (result.data.id !== challengeId) {
@@ -64,7 +61,7 @@ export function ChallengeEditorForm({ challengeId }: { challengeId: string }) {
     mutation.mutate();
   };
 
-  if (isLoading) return <CardSkeleton />;
+  if (!authInitialized || isLoading) return <CardSkeleton />;
 
   if (isError) {
     return <p className="text-sm" style={{ color: "var(--error-color)" }}>Challenge not found.</p>;
@@ -74,11 +71,11 @@ export function ChallengeEditorForm({ challengeId }: { challengeId: string }) {
     <form className="space-y-4" onSubmit={onSubmit}>
       <div>
         <label htmlFor="editor-title" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Title</label>
-        <input id="editor-title" className="input-glass" value={title} onChange={(e) => setTitle(e.target.value)} required />
+        <input id="editor-title" className="input-glass" value={title} onChange={(e) => setTitleDraft(e.target.value)} required />
       </div>
       <div>
         <label htmlFor="editor-desc" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Description</label>
-        <textarea id="editor-desc" className="input-glass" rows={12} value={description} onChange={(e) => setDescription(e.target.value)} required style={{ resize: "vertical" }} />
+        <textarea id="editor-desc" className="input-glass" rows={12} value={description} onChange={(e) => setDescriptionDraft(e.target.value)} required style={{ resize: "vertical" }} />
       </div>
       <button className="btn-gradient" type="submit" disabled={mutation.isPending}>
         {mutation.isPending ? "Saving..." : "Save challenge"}

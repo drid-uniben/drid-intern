@@ -1,21 +1,24 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
 import { apiGet, apiPatch } from "@/lib/api";
 import { AdminUser, UserRole } from "@/types/domain";
 import { useAuthToken } from "@/hooks/useAuth";
+import { useAuthedQuery } from "@/hooks/useAuthedQuery";
 import { ListSkeleton } from "@/components/ui/LoadingSkeleton";
 import { AutoStatusBadge } from "@/components/ui/StatusBadge";
+import { useAppStore } from "@/lib/store";
 
 export default function AdminUsersPage() {
   const token = useAuthToken();
+  const authInitialized = useAppStore((state) => state.authInitialized);
   const queryClient = useQueryClient();
 
-  const { data: users = [], isLoading } = useQuery({
+  const { data: users = [], isLoading } = useAuthedQuery<AdminUser[]>({
     queryKey: ["admin-users"],
-    queryFn: async () => {
+    queryFn: async (token) => {
       const result = await apiGet<AdminUser[]>("/users", token);
       return result.success && result.data ? result.data : [];
     },
@@ -64,7 +67,7 @@ export default function AdminUsersPage() {
         User <span className="gradient-text">Management</span>
       </h1>
 
-      {isLoading ? (
+      {!authInitialized || isLoading ? (
         <div className="mt-6"><ListSkeleton count={5} /></div>
       ) : (
         <div className="mt-6 space-y-3">

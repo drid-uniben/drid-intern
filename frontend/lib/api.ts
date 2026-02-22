@@ -1,3 +1,5 @@
+import { useAppStore } from "@/lib/store";
+
 const resolveApiBase = (): string => {
   const raw = process.env.NEXT_PUBLIC_API_URL ?? process.env.API_BASE ?? "http://localhost:3000/api/v1";
 
@@ -44,38 +46,19 @@ interface RefreshResponse {
 }
 
 const readAccessToken = (): string | null => {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  return localStorage.getItem("accessToken");
+  return useAppStore.getState().accessToken;
 };
 
 const readRefreshToken = (): string | null => {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  return localStorage.getItem("refreshToken");
+  return useAppStore.getState().refreshToken;
 };
 
 const saveTokens = (tokens: RefreshResponse): void => {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  localStorage.setItem("accessToken", tokens.accessToken);
-  localStorage.setItem("refreshToken", tokens.refreshToken);
+  useAppStore.getState().setTokens(tokens);
 };
 
 const clearTokens = (): void => {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("refreshToken");
-  localStorage.removeItem("userRole");
+  useAppStore.getState().clearSession();
 };
 
 const refreshSession = async (): Promise<boolean> => {

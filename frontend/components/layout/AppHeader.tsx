@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
 import { apiPost } from "@/lib/api";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { useAppStore } from "@/lib/store";
 
 const navItems = (role: string | null, token: string | null) => {
   const items: { href: string; label: string; match: string; exact?: boolean }[] = [
@@ -33,26 +34,16 @@ export function AppHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [authState, setAuthState] = useState<{ role: string | null; token: string | null }>({ role: null, token: null });
-  const role = authState.role;
-  const token = authState.token;
+  const role = useAppStore((state) => state.userRole);
+  const token = useAppStore((state) => state.accessToken);
+  const clearSession = useAppStore((state) => state.clearSession);
   const items = navItems(role, token);
-
-  useEffect(() => {
-    setAuthState({
-      role: localStorage.getItem("userRole"),
-      token: localStorage.getItem("accessToken"),
-    });
-  }, []);
 
   const logout = async () => {
     if (token) {
       await apiPost("/auth/logout", {}, token);
     }
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("userRole");
-    setAuthState({ role: null, token: null });
+    clearSession();
     router.push("/login");
   };
 

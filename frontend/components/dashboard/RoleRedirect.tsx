@@ -2,15 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAppStore } from "@/lib/store";
 
 export function RoleRedirect() {
   const router = useRouter();
+  const role = useAppStore((state) => state.userRole);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
-    const role = localStorage.getItem("userRole");
     if (role === "ADMIN") {
       router.replace("/admin");
       return;
@@ -27,7 +28,7 @@ export function RoleRedirect() {
     }
 
     router.replace("/login");
-  }, [router]);
+  }, [role, router]);
 
   if (!mounted) return null;
 

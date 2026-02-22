@@ -1,20 +1,23 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPost } from "@/lib/api";
 import { useAuthToken } from "@/hooks/useAuth";
+import { useAuthedQuery } from "@/hooks/useAuthedQuery";
 import { ChallengeCategory } from "@/types/domain";
+import { useAppStore } from "@/lib/store";
 
 export function ChallengeCategoryManager() {
   const token = useAuthToken();
+  const authInitialized = useAppStore((state) => state.authInitialized);
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [message, setMessage] = useState<string | null>(null);
 
-  const { data: categories = [], isLoading } = useQuery({
+  const { data: categories = [], isLoading } = useAuthedQuery<ChallengeCategory[]>({
     queryKey: ["admin-challenge-categories"],
-    queryFn: async () => {
+    queryFn: async (token) => {
       const result = await apiGet<ChallengeCategory[]>("/challenge-categories/admin", token);
       return result.success && result.data ? result.data : [];
     },
@@ -74,7 +77,7 @@ export function ChallengeCategoryManager() {
 
       <div className="glass rounded-2xl p-6">
         <h2 className="text-lg font-semibold">Existing Categories</h2>
-        {isLoading ? (
+        {!authInitialized || isLoading ? (
           <p className="mt-3 text-sm" style={{ color: "var(--text-secondary)" }}>Loading categories...</p>
         ) : categories.length === 0 ? (
           <p className="mt-3 text-sm" style={{ color: "var(--text-secondary)" }}>No categories yet.</p>

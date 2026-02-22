@@ -2,19 +2,13 @@
 
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
 import { UserRole } from "@/types/domain";
+import { useAppStore } from "@/lib/store";
 
 interface RouteGuardProps {
   allowedRoles?: UserRole[];
   children: React.ReactNode;
 }
-
-const clearAuthStorage = (): void => {
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("refreshToken");
-  localStorage.removeItem("userRole");
-};
 
 const isTokenValid = (token: string): boolean => {
   const tokenParts = token.split(".");
@@ -42,35 +36,31 @@ const isTokenValid = (token: string): boolean => {
 export function RouteGuard({ allowedRoles, children }: RouteGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const authInitialized = useAppStore((state) => state.authInitialized);
+  const accessToken = useAppStore((state) => state.accessToken);
+  const userRole = useAppStore((state) => state.userRole);
+  const clearSession = useAppStore((state) => state.clearSession);
+  const hasValidSession = !!accessToken && isTokenValid(accessToken);
+  const hasAllowedRole = !allowedRoles || (!!userRole && allowedRoles.includes(userRole));
 
   useEffect(() => {
-    const accessToken = localStorage.getItem("accessToken");
-    const userRole = localStorage.getItem("userRole") as UserRole | null;
-    const hasValidSession = !!accessToken && isTokenValid(accessToken);
-    const hasAllowedRole = !allowedRoles || (!!userRole && allowedRoles.includes(userRole));
+    if (!authInitialized) {
+      return;
+    }
 
     if (!hasValidSession) {
-      clearAuthStorage();
+      clearSession();
       router.replace(`/login?next=${encodeURIComponent(pathname)}`);
-      setIsAuthorized(false);
-      setIsCheckingAuth(false);
       return;
     }
 
     if (!hasAllowedRole) {
       router.replace("/403");
-      setIsAuthorized(false);
-      setIsCheckingAuth(false);
       return;
     }
+  }, [authInitialized, clearSession, hasAllowedRole, hasValidSession, pathname, router]);
 
-    setIsAuthorized(true);
-    setIsCheckingAuth(false);
-  }, [allowedRoles, pathname, router]);
-
-  if (isCheckingAuth || !isAuthorized) {
+  if (!authInitialized || !hasValidSession || !hasAllowedRole) {
     return null;
   }
 

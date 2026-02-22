@@ -2,28 +2,28 @@
 
 import Link from "next/link";
 import { use } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { apiGet } from "@/lib/api";
 import { CohortStatusActions } from "@/components/admin/CohortStatusActions";
 import { Cohort } from "@/types/domain";
-import { useAuthToken } from "@/hooks/useAuth";
+import { useAuthedQuery } from "@/hooks/useAuthedQuery";
 import { CardSkeleton } from "@/components/ui/LoadingSkeleton";
 import { AutoStatusBadge } from "@/components/ui/StatusBadge";
 import { BackButton } from "@/components/ui/BackButton";
+import { useAppStore } from "@/lib/store";
 
 export default function AdminCohortDetailPage({ params }: { params: Promise<{ cohortId: string }> }) {
   const { cohortId } = use(params);
-  const token = useAuthToken();
+  const authInitialized = useAppStore((state) => state.authInitialized);
 
-  const { data: cohort, isLoading } = useQuery({
+  const { data: cohort, isLoading } = useAuthedQuery<Cohort | null>({
     queryKey: ["admin-cohort", cohortId],
-    queryFn: async () => {
+    queryFn: async (token) => {
       const result = await apiGet<Cohort>(`/cohorts/${cohortId}`, token);
       return result.success && result.data ? result.data : null;
     },
   });
 
-  if (isLoading) {
+  if (!authInitialized || isLoading) {
     return (
       <main className="mx-auto max-w-4xl px-6 py-12">
         <BackButton fallbackHref="/admin" />

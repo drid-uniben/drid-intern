@@ -6,6 +6,7 @@ import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { apiPost } from "@/lib/api";
+import { useAppStore } from "@/lib/store";
 
 interface LoginResponse {
   accessToken: string;
@@ -45,6 +46,7 @@ function reducer(state: State, action: Action): State {
 
 export function LoginForm() {
   const router = useRouter();
+  const setSession = useAppStore((state) => state.setSession);
   const [showPassword, setShowPassword] = useState(false);
   const [state, dispatch] = useReducer(reducer, {
     email: "",
@@ -68,9 +70,11 @@ export function LoginForm() {
     }
 
     dispatch({ type: "RESET_LOADING" });
-    localStorage.setItem("accessToken", result.data.accessToken);
-    localStorage.setItem("refreshToken", result.data.refreshToken);
-    localStorage.setItem("userRole", result.data.user.role);
+    setSession({
+      accessToken: result.data.accessToken,
+      refreshToken: result.data.refreshToken,
+      userRole: result.data.user.role,
+    });
     router.push("/dashboard");
   };
 

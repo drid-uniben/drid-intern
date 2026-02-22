@@ -1,10 +1,10 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import * as m from "motion/react-m";
 import { apiGet } from "@/lib/api";
-import { useAuthToken } from "@/hooks/useAuth";
+import { useAuthedQuery } from "@/hooks/useAuthedQuery";
 import { ListSkeleton } from "@/components/ui/LoadingSkeleton";
+import { useAppStore } from "@/lib/store";
 
 interface NotificationItem {
   id: string;
@@ -14,11 +14,11 @@ interface NotificationItem {
 }
 
 export default function NotificationsPage() {
-  const token = useAuthToken();
+  const authInitialized = useAppStore((state) => state.authInitialized);
 
-  const { data: items = [], isLoading } = useQuery({
+  const { data: items = [], isLoading } = useAuthedQuery<NotificationItem[]>({
     queryKey: ["notifications"],
-    queryFn: async () => {
+    queryFn: async (token) => {
       const result = await apiGet<NotificationItem[]>("/notifications", token);
       return result.success && result.data ? result.data : [];
     },
@@ -30,7 +30,7 @@ export default function NotificationsPage() {
         <span className="gradient-text">Notifications</span>
       </h1>
 
-      {isLoading ? (
+      {!authInitialized || isLoading ? (
         <div className="mt-6"><ListSkeleton count={3} /></div>
       ) : items.length === 0 ? (
         <div className="glass rounded-2xl p-8 mt-6 text-center" style={{ animation: "slideUp 0.5s ease-out" }}>
