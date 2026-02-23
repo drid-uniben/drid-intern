@@ -163,8 +163,13 @@ export default function AdminSubmissionsPage() {
       window.URL.revokeObjectURL(downloadUrl);
     },
 
-    onError: (error: any) => {
-      alert("Failed to export: " + error.message);
+    onError: (error: unknown) => {
+      if (error instanceof Error) {
+        alert(`Failed to export: ${error.message}`);
+        return;
+      }
+
+      alert("Failed to export: Unexpected error during export");
     },
   });
 
