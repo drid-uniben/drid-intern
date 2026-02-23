@@ -42,7 +42,6 @@ export default function AdminSubmissionsPage() {
   const [selectedReviewerId, setSelectedReviewerId] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [isExporting, setIsExporting] = useState(false);
   const [page, setPage] = useState(1);
   const limit = 10;
 
@@ -117,43 +116,57 @@ export default function AdminSubmissionsPage() {
     return reviewer ? reviewer.fullName : "Unknown";
   };
 
-  const handleExportCsv = async () => {
-    if (!token) return;
-    setIsExporting(true);
-    try {
+  const exportMutation = useMutation({
+    mutationFn: async () => {
+      if (!token) throw new Error("No auth token");
+
       const params = new URLSearchParams();
       if (statusFilter) params.append("status", statusFilter);
       if (searchQuery) params.append("search", searchQuery);
-      const query = params.toString() ? `?${params.toString()}` : "";
 
+      const query = params.toString() ? `?${params.toString()}` : "";
       const url = `/api/proxy/submissions/export${query}`;
 
       const response = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
-      if (!response.ok) throw new Error("Export failed");
+      if (!response.ok) {
+        throw new Error("Export failed");
+      }
 
+      return response;
+    },
+
+    onSuccess: async (response) => {
       const blob = await response.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
+
       const a = document.createElement("a");
       a.href = downloadUrl;
+
       const contentDisposition = response.headers.get("Content-Disposition");
-      let filename = `submissions_export.csv`;
-      if (contentDisposition && contentDisposition.includes("filename=")) {
-        filename = contentDisposition.split("filename=")[1].replace(/"/g, "");
+      let filename = "submissions_export.csv";
+
+      if (contentDisposition?.includes("filename=")) {
+        filename = contentDisposition
+          .split("filename=")[1]
+          .replace(/"/g, "");
       }
+
       a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();
       window.URL.revokeObjectURL(downloadUrl);
-    } catch (error) {
-      alert("Failed to export: " + error);
-    } finally {
-      setIsExporting(false);
-    }
-  };
+    },
+
+    onError: (error: any) => {
+      alert("Failed to export: " + error.message);
+    },
+  });
 
   const isLoading = isLoadingSubmissions;
 
@@ -168,10 +181,10 @@ export default function AdminSubmissionsPage() {
 
           <button
             className="btn-glass !py-2 !px-4 text-sm flex items-center gap-2"
-            onClick={handleExportCsv}
-            disabled={isExporting}
+            onClick={() => exportMutation.mutate()}
+            disabled={exportMutation.isPending}
           >
-            {isExporting ? "Exporting..." : (
+            {exportMutation.isPending ? "Exporting..." : (
               <>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
