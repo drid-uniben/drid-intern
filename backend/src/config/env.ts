@@ -48,10 +48,30 @@ const cleanOptionalUrlValue = (value: unknown): unknown => {
   return cleaned;
 };
 
+const parseTrustProxyValue = (value: unknown): unknown => {
+  const cleaned = cleanStringValue(value);
+
+  if (cleaned === undefined || cleaned === null || cleaned === "") {
+    return 1;
+  }
+
+  if (cleaned === "true" || cleaned === "false") {
+    return cleaned;
+  }
+
+  if (typeof cleaned === "string" && /^\d+$/.test(cleaned)) {
+    return Number(cleaned);
+  }
+
+  return cleaned;
+};
+
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(4000),
-  TRUST_PROXY: z.preprocess(cleanStringValue, z.enum(["true", "false"]).default("true")).transform((value) => value === "true"),
+  TRUST_PROXY: z
+    .preprocess(parseTrustProxyValue, z.union([z.enum(["true", "false"]), z.number().int().min(0)]))
+    .transform((value) => (value === "true" ? true : value === "false" ? false : value)),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
   RATE_LIMIT_MAX: z.coerce.number().int().positive().default(120),
   AUTH_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(20),
