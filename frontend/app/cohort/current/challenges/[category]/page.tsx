@@ -5,6 +5,8 @@ import { BackButton } from "@/components/ui/BackButton";
 import Link from "next/link";
 import { getSubmissionRequirements } from "@/lib/submissionRequirements";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Challenge Details — DRID Internship",
   description: "View challenge details and submission instructions.",

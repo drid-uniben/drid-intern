@@ -5,6 +5,8 @@ import { BackButton } from "@/components/ui/BackButton";
 import { PublicChallengeSubmissionForm } from "@/components/forms/PublicChallengeSubmissionForm";
 import { getSubmissionRequirements } from "@/lib/submissionRequirements";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Public Challenge Submission — DRID Internship",
   description: "Submit a challenge as a public applicant.",
