@@ -4,6 +4,7 @@ import { Challenge } from "@/types/domain";
 import { BackButton } from "@/components/ui/BackButton";
 import Link from "next/link";
 import { getSubmissionRequirements } from "@/lib/submissionRequirements";
+import { ChallengeDescription } from "@/components/public/ChallengeDescription";
 
 export const metadata: Metadata = {
   title: "Challenge Details — DRID Internship",
@@ -50,10 +51,10 @@ export default async function ChallengeDetailPage({ params }: { params: Promise<
         <p className="mt-2 text-lg font-semibold">{challenge.title}</p>
       </div>
       <article
-        className="glass rounded-2xl p-6 whitespace-pre-wrap leading-relaxed"
+        className="glass rounded-2xl p-6 whitespace-pre-wrap leading-relaxed break-words [overflow-wrap:anywhere]"
         style={{ color: "var(--text-secondary)", animation: "slideUp 0.5s ease-out 0.2s both" }}
       >
-        {challenge.description}
+        <ChallengeDescription description={challenge.description} />
       </article>
       <div className="glass rounded-2xl p-6" style={{ animation: "slideUp 0.5s ease-out 0.3s both" }}>
         <h2 className="text-lg font-semibold">{requirements.heading}</h2>
