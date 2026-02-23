@@ -4,8 +4,6 @@ import { apiGet } from "@/lib/api";
 import { Cohort } from "@/types/domain";
 import CountdownTimer from "./countdown/countdown-timer";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Current Cohort — DRID Internship",
   description: "View the active DRID internship cohort, deadline, and countdown.",
