@@ -48,7 +48,7 @@ export function AppHeader() {
   };
 
   return (
-    <header className="glass-strong sticky top-0 z-50" style={{ borderBottom: "1px solid var(--glass-border)" }}>
+    <header className="glass-strong sticky top-0 z-50 backdrop-blur-sm" style={{ borderBottom: "1px solid var(--glass-border)" }}>
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         {/* Logo */}
         <Link href="/" className="gradient-text text-xl font-bold tracking-tight">
@@ -80,19 +80,14 @@ export function AppHeader() {
           })}
           <div className="ml-2 flex items-center gap-2">
             <ThemeToggle />
-            {token ? (
+            {token &&
               <button
                 className="btn-gradient !py-1.5 !px-3 !text-sm !rounded-lg"
                 onClick={logout}
                 type="button"
               >
                 Logout
-              </button>
-            ) : (
-              <Link href="/login" className="btn-gradient !py-1.5 !px-3 !text-sm !rounded-lg">
-                Login
-              </Link>
-            )}
+              </button>}
           </div>
         </nav>
 

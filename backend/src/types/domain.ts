@@ -6,6 +6,8 @@ export type Category = string;
 
 export type SubmissionStatus = "submitted" | "under_review" | "accepted" | "rejected";
 
+export type Recommendation = "RECOMMEND" | "NEUTRAL" | "DO_NOT_RECOMMEND";
+
 export type NotificationType =
   | "NEW_USER_REGISTERED"
   | "INVITATION_ACCEPTED"
@@ -67,12 +69,13 @@ export interface Submission {
   category: Category;
   fullName: string;
   email: string;
-  githubUrl: string | null;
-  deploymentUrl: string | null;
-  figmaUrl: string | null;
+  repoUrl: string | null;
+  liveLink: string | null;
+  designLinks: string | null;
   message: string;
   status: SubmissionStatus;
   averageRating: number | null;
+  assignedReviewerId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -90,6 +93,8 @@ export interface Review {
   submissionId: string;
   reviewerUserId: string;
   rating: number;
+  criteriaScores: any | null; // using any for JSON structure { label, score, comment }
+  recommendation: Recommendation | null;
   comment: string;
   createdAt: string;
 }

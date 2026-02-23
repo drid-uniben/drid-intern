@@ -12,9 +12,9 @@ import { ListSkeleton } from "@/components/ui/LoadingSkeleton";
 interface State {
   fullName: string;
   email: string;
-  githubUrl: string;
-  deploymentUrl: string;
-  figmaUrl: string;
+  repoUrl: string;
+  liveLink: string;
+  designLinks: string;
   message: string;
   category: string;
   error: string | null;
@@ -43,9 +43,9 @@ export function InviteSubmissionForm({ token }: { token: string }) {
   const [state, dispatch] = useReducer(reducer, {
     fullName: "",
     email: "",
-    githubUrl: "",
-    deploymentUrl: "",
-    figmaUrl: "",
+    repoUrl: "",
+    liveLink: "",
+    designLinks: "",
     message: "",
     category: "",
     error: null,
@@ -69,9 +69,9 @@ export function InviteSubmissionForm({ token }: { token: string }) {
         invitationToken: token,
         fullName: state.fullName,
         email: emailValue,
-        githubUrl: state.githubUrl || undefined,
-        deploymentUrl: state.deploymentUrl || undefined,
-        figmaUrl: state.figmaUrl || undefined,
+        repoUrl: state.repoUrl || undefined,
+        liveLink: state.liveLink || undefined,
+        designLinks: state.designLinks || undefined,
         message: state.message,
       });
     },
@@ -110,18 +110,18 @@ export function InviteSubmissionForm({ token }: { token: string }) {
 
       {isDesign ? (
         <div>
-          <label htmlFor="invite-figma" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Figma URL</label>
-          <input id="invite-figma" className="input-glass" placeholder="https://figma.com/..." type="url" value={state.figmaUrl} onChange={(e) => dispatch({ type: "SET_FIELD", field: "figmaUrl", value: e.target.value })} required />
+          <label htmlFor="invite-figma" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Design Links (Figma, etc.)</label>
+          <input id="invite-figma" className="input-glass" placeholder="https://figma.com/..." type="url" value={state.designLinks} onChange={(e) => dispatch({ type: "SET_FIELD", field: "designLinks", value: e.target.value })} required />
         </div>
       ) : (
         <>
           <div>
-            <label htmlFor="invite-github" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>GitHub repo URL</label>
-            <input id="invite-github" className="input-glass" placeholder="https://github.com/..." type="url" value={state.githubUrl} onChange={(e) => dispatch({ type: "SET_FIELD", field: "githubUrl", value: e.target.value })} required />
+            <label htmlFor="invite-github" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Repository URL</label>
+            <input id="invite-github" className="input-glass" placeholder="https://github.com/..." type="url" value={state.repoUrl} onChange={(e) => dispatch({ type: "SET_FIELD", field: "repoUrl", value: e.target.value })} required />
           </div>
           <div>
-            <label htmlFor="invite-deploy" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Deployment URL</label>
-            <input id="invite-deploy" className="input-glass" placeholder="https://your-app.vercel.app" type="url" value={state.deploymentUrl} onChange={(e) => dispatch({ type: "SET_FIELD", field: "deploymentUrl", value: e.target.value })} required />
+            <label htmlFor="invite-deploy" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Live Deployment URL</label>
+            <input id="invite-deploy" className="input-glass" placeholder="https://your-app.vercel.app" type="url" value={state.liveLink} onChange={(e) => dispatch({ type: "SET_FIELD", field: "liveLink", value: e.target.value })} required />
           </div>
         </>
       )}
