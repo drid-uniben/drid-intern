@@ -103,8 +103,8 @@ test("invite to review decision workflow", async () => {
     invitationToken,
     fullName: "Candidate",
     email: "candidate@example.com",
-    githubUrl: "https://github.com/example/repo",
-    deploymentUrl: "https://example.com",
+    repoUrl: "https://github.com/example/repo",
+    liveLink: "https://example.com",
     message: "Please review my submission",
   });
   assert.equal(submission.status, 201);

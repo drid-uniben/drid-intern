@@ -27,7 +27,6 @@ export default async function ChallengeListPage() {
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <span className="badge badge-accent">{challenge.category}</span>
-                <h2 className="text-xl font-semibold">{challenge.title}</h2>
               </div>
               <Link
                 href={`/cohort/current/challenges/${challenge.category}/submit`}
@@ -38,12 +37,15 @@ export default async function ChallengeListPage() {
                 Submit
               </Link>
             </div>
-            <Link
-              href={`/cohort/current/challenges/${challenge.category}`}
-              className="mt-3 inline-block text-sm gradient-text font-medium"
-            >
-              View challenge details →
-            </Link>
+            <div className="flex flex-col items-start gap-3">
+              <h2 className="text-xl font-semibold">{challenge.title}</h2>
+              <Link
+                href={`/cohort/current/challenges/${challenge.category}`}
+                className="mt-3 inline-block text-sm gradient-text font-medium"
+              >
+                View challenge details →
+              </Link>
+            </div>
           </div>
         ))}
       </div>

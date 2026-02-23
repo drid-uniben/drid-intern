@@ -2,117 +2,170 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { apiGet } from "@/lib/api";
 import { Challenge, Cohort } from "@/types/domain";
+import TimelinePhases from "@/components/public/TimelinePhases";
 
 export const metadata: Metadata = {
   title: "DRID Internship Platform",
-  description: "Apply for DRID cohort-based internship challenges in frontend, backend, fullstack, and design.",
+  description:
+    "A cohort-based, invite-only internship program for engineering and design talent. View the timeline and challenge tracks.",
 };
 
 export default async function Home() {
   const cohortResult = await apiGet<Cohort>("/public/cohort");
   const challengeResult = await apiGet<Challenge[]>("/public/challenges");
   const cohort = cohortResult.success ? cohortResult.data : undefined;
-  const challenges = challengeResult.success && challengeResult.data ? challengeResult.data : [];
+  const challenges =
+    challengeResult.success && challengeResult.data
+      ? challengeResult.data
+      : [];
 
   return (
-    <main className="min-h-screen relative overflow-hidden">
-      {/* Decorative orbs */}
-      <div className="orb" style={{ width: 400, height: 400, background: "var(--accent-start)", opacity: 0.12, top: -100, right: -100 }} />
-      <div className="orb" style={{ width: 300, height: 300, background: "var(--accent-end)", opacity: 0.1, bottom: 100, left: -80, animationDelay: "3s" }} />
+    <main className="min-h-screen relative overflow-hidden flex flex-col items-center">
+      {/* Decorative Background Elements */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[var(--glass-bg-subtle)] via-transparent to-transparent pointer-events-none" />
 
-      <div className="mx-auto max-w-6xl space-y-10 px-6 py-12 relative z-10">
-        {/* Hero Section */}
-        <section
-          className="glass rounded-3xl p-10 md:p-14 relative overflow-hidden"
-          style={{ animation: "slideUp 0.6s ease-out" }}
-        >
-          <div className="orb" style={{ width: 200, height: 200, background: "var(--accent-mid)", opacity: 0.15, top: -60, right: -40 }} />
-          <p
-            className="badge badge-accent text-xs"
-            style={{ animation: "fadeIn 0.6s ease-out 0.2s both" }}
-          >
-            DRID Internship Applications
-          </p>
-          <h1
-            className="mt-4 text-4xl md:text-5xl font-bold leading-tight"
-            style={{ animation: "fadeIn 0.6s ease-out 0.3s both" }}
-          >
-            Build, design, and ship with the{" "}
-            <span className="gradient-text">DRID engineering team</span>
+      <div
+        className="orb"
+        style={{
+          width: 600,
+          height: 600,
+          background: "var(--accent-start)",
+          opacity: 0.15,
+          top: -200,
+          left: -200,
+          filter: "blur(120px)",
+        }}
+      />
+      <div
+        className="orb"
+        style={{
+          width: 500,
+          height: 500,
+          background: "var(--accent-end)",
+          opacity: 0.12,
+          bottom: -100,
+          right: -150,
+          animationDelay: "4s",
+          filter: "blur(100px)",
+        }}
+      />
+
+      <div className="w-full max-w-6xl space-y-16 px-6 py-20 relative z-10">
+        {/* ── Hero text ── */}
+        <section className="text-center space-y-6" style={{ animation: "slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both" }}>
+          <div className="inline-block relative">
+            <div className="absolute inset-0 bg-[var(--glow-color)] blur-2xl opacity-40 rounded-full" />
+            <span className="relative badge badge-accent text-sm px-4 py-1.5 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] backdrop-blur-xl">
+              Cohort-Based
+            </span>
+          </div>
+
+          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1]">
+            Build your future with the<br className="hidden md:block" />
+            <span className="gradient-text pb-2 inline-block">DRID Engineering Team</span>
           </h1>
-          <p
-            className="mt-4 max-w-3xl text-lg"
-            style={{ color: "var(--text-secondary)", animation: "fadeIn 0.6s ease-out 0.4s both" }}
-          >
-            This platform hosts cohort-based challenge submissions for frontend, backend, fullstack, and design internship applicants.
+
+          <p className="max-w-2xl mx-auto text-lg md:text-xl text-[var(--text-secondary)] leading-relaxed">
+            An exclusive program designed to identify, challenge, and nurture exceptional technical and design talent.
           </p>
-          <div
-            className="mt-8 flex flex-wrap gap-3"
-            style={{ animation: "fadeIn 0.6s ease-out 0.5s both" }}
-          >
-            <Link className="btn-gradient" href="/cohort/current">View active cohort</Link>
-            <Link className="btn-glass" href="/cohort/current/challenges">Browse challenges</Link>
+
+          {/* CTA buttons */}
+          <div className="pt-6 flex flex-wrap justify-center gap-4">
+            <Link className="btn-gradient px-8 py-3.5 text-base shadow-lg shadow-[var(--glow-color)] hover:shadow-xl hover:shadow-[var(--glow-color)]/60 transition-all" href="/cohort/current">
+              View Active Cohort
+            </Link>
+            <Link className="btn-glass px-8 py-3.5 text-base hover:bg-[var(--glass-bg-strong)] transition-all" href="/cohort/current/challenges">
+              Explore Challenges
+            </Link>
           </div>
         </section>
 
-        {/* Current Cohort */}
-        <section
-          className="glass rounded-2xl p-6"
-          style={{ animation: "slideUp 0.6s ease-out 0.3s both" }}
-        >
-          <h2 className="text-2xl font-semibold">Current Cohort</h2>
-          {cohort ? (
-            <div className="mt-3 space-y-1" style={{ color: "var(--text-secondary)" }}>
-              <p className="font-medium" style={{ color: "var(--text-primary)" }}>
-                DRID Internship {cohort.year} Cohort {cohort.cohortNumber}
-              </p>
-              <p>Status: <span className="badge badge-accent ml-1">{cohort.status}</span></p>
-              <p>Deadline: {new Date(cohort.deadlineAt).toLocaleString()}</p>
-              <Link
-                className="mt-2 inline-block text-sm font-medium gradient-text"
-                href="/cohort/current/countdown"
-              >
-                Open countdown →
-              </Link>
-            </div>
-          ) : (
-            <p className="mt-3" style={{ color: "var(--text-secondary)" }}>
-              No active cohort right now. Stay tuned for the next application window.
-            </p>
-          )}
+        {/* ── Timeline ── */}
+        <section style={{ animation: "slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both" }}>
+          <TimelinePhases cohort={cohort} />
         </section>
 
-        {/* Challenge Tracks */}
-        <section className="space-y-4" style={{ animation: "slideUp 0.6s ease-out 0.5s both" }}>
-          <h2 className="text-2xl font-semibold">Challenge Tracks</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            {challenges.length > 0 ? challenges.map((challenge, i) => (
-              <div
-                key={challenge.id}
-                className="glass rounded-2xl p-5"
-                style={{ animation: `slideUp 0.5s ease-out ${0.6 + i * 0.1}s both` }}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <p className="badge badge-accent text-xs">{challenge.category}</p>
-                  <Link
-                    className="btn-glass !py-1.5 !px-3 !text-sm !rounded-lg"
-                    href={`/cohort/current/challenges/${challenge.category}/submit`}
-                    aria-label={`Submit ${challenge.category} challenge`}
+        {/* ── What This Program Is ── */}
+        <section
+          className="glass-strong rounded-3xl p-8 md:p-12 relative overflow-hidden group hover:border-[var(--glass-border)] transition-colors"
+          style={{ animation: "slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both" }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-[var(--glass-bg-subtle)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="relative z-10 max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl font-bold mb-6">About the Program</h2>
+            <p className="text-lg leading-relaxed text-[var(--text-secondary)]">
+              The DRID Internship Program places selected candidates into rigorous, real-world engineering and design scenarios. Participation is open to anyone. Participants receive a feedback email after the active cohort window on their submissions.
+            </p>
+          </div>
+        </section>
+
+        {/* ── Tracks ── */}
+        <section className="space-y-8" style={{ animation: "slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both" }}>
+          <div className="text-center">
+            <h2 className="text-3xl font-bold">Challenge Tracks</h2>
+            <p className="mt-2 text-[var(--text-secondary)]">Select your area of expertise</p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {/* Dynamic challenge cards if available, otherwise static list */}
+            {challenges.length > 0 ? (
+              challenges.map((challenge, i) => (
+                <div
+                  key={challenge.id}
+                  className="glass rounded-2xl p-6 group hover:bg-[var(--glass-bg-strong)] transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-[var(--glass-shadow)] flex flex-col h-full"
+                  style={{ animation: `slideUp 0.5s ease-out ${0.5 + i * 0.1}s both` }}
+                >
+                  <div className="flex-1">
+                    <div className="mb-4 inline-flex">
+                      <span className="badge badge-accent text-xs px-2.5 py-1 rounded-md">{challenge.category}</span>
+                    </div>
+                    <h3 className="text-xl font-bold mb-2 group-hover:gradient-text transition-colors">{challenge.title}</h3>
+                  </div>
+
+                  <div className="mt-6 pt-4 border-t border-[var(--glass-border)]">
+                    <Link
+                      className="inline-flex items-center text-sm font-semibold gradient-text hover:opacity-80 transition-opacity"
+                      href={`/cohort/current/challenges/${challenge.category}`}
+                    >
+                      View Challenge Details <span className="ml-1 transition-transform group-hover:translate-x-1">→</span>
+                    </Link>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <>
+                {/* Static Fallback Tracks when no cohort/challenges */}
+                {[
+                  { id: 'frontend', title: 'Frontend Engineering', category: 'frontend', track: 'Engineering' },
+                  { id: 'backend', title: 'Backend Engineering', category: 'backend', track: 'Engineering' },
+                  { id: 'fullstack', title: 'Fullstack Engineering', category: 'fullstack', track: 'Engineering' },
+                  { id: 'design', title: 'Product Design', category: 'design', track: 'Design' }
+                ].map((c, i) => (
+                  <div
+                    key={c.id}
+                    className="glass rounded-2xl p-6 group hover:bg-[var(--glass-bg-strong)] transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-[var(--glass-shadow)] flex flex-col h-full"
+                    style={{ animation: `slideUp 0.5s ease-out ${0.5 + i * 0.1}s both` }}
                   >
-                    Submit
-                  </Link>
-                </div>
-                <h3 className="mt-2 text-lg font-semibold">{challenge.title}</h3>
-                <div className="mt-3 flex gap-3 text-sm">
-                  <Link className="gradient-text font-medium" href={`/cohort/current/challenges/${challenge.category}`}>
-                    View details →
-                  </Link>
-                </div>
-              </div>
-            )) : (
-              <p style={{ color: "var(--text-secondary)" }}>
-                Challenge content will appear when the cohort challenges are published.
-              </p>
+                    <div className="flex-1">
+                      <div className="mb-4 flex flex-col items-start gap-2">
+                        <span className="text-[10px] font-semibold tracking-wider text-[var(--text-muted)] uppercase">{c.track}</span>
+                        <span className="badge badge-accent text-xs px-2.5 py-1 rounded-md">{c.category}</span>
+                      </div>
+                      <h3 className="text-xl font-bold mb-2 group-hover:gradient-text transition-colors">{c.title}</h3>
+                      <p className="text-sm text-[var(--text-secondary)]">Challenge details published during active cohort.</p>
+                    </div>
+
+                    <div className="mt-6 pt-4 border-t border-[var(--glass-border)]">
+                      <Link
+                        className="inline-flex items-center text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                        href={`/cohort/current/challenges/${c.category}`}
+                      >
+                        View Example Details <span className="ml-1 transition-transform group-hover:translate-x-1">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </>
             )}
           </div>
         </section>

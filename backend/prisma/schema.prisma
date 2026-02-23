@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider          = "postgresql"
   url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
@@ -12,6 +12,12 @@ enum UserRole {
   ADMIN
   REVIEWER
   INTERN
+}
+
+enum Recommendation {
+  RECOMMEND
+  NEUTRAL
+  DO_NOT_RECOMMEND
 }
 
 enum CohortStatus {
@@ -38,20 +44,21 @@ enum NotificationType {
 }
 
 model User {
-  id              String         @id @default(uuid())
-  fullName        String
-  email           String         @unique
-  passwordHash    String
-  role            UserRole
-  isActive        Boolean        @default(true)
-  isVerified      Boolean        @default(false)
-  approvedByAdmin Boolean        @default(false)
-  refreshToken    String?
-  createdAt       DateTime       @default(now())
-  lastLoginAt     DateTime?
-  notifications   Notification[]
-  reviews         Review[]
-  auditLogs       AuditLog[]
+  id                  String         @id @default(uuid())
+  fullName            String
+  email               String         @unique
+  passwordHash        String
+  role                UserRole
+  isActive            Boolean        @default(true)
+  isVerified          Boolean        @default(false)
+  approvedByAdmin     Boolean        @default(false)
+  refreshToken        String?
+  createdAt           DateTime       @default(now())
+  lastLoginAt         DateTime?
+  notifications       Notification[]
+  reviews             Review[]
+  auditLogs           AuditLog[]
+  assignedSubmissions Submission[]   @relation("ReviewerAssignments")
 }
 
 model Cohort {
@@ -100,26 +107,29 @@ model Invitation {
 }
 
 model Submission {
-  id            String           @id @default(uuid())
-  cohortId      String
-  invitationId  String           @unique
-  category      String
-  fullName      String
-  email         String
-  githubUrl     String?
-  deploymentUrl String?
-  figmaUrl      String?
-  message       String
-  status        SubmissionStatus
-  averageRating Float?
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-  cohort        Cohort           @relation(fields: [cohortId], references: [id], onDelete: Cascade)
-  invitation    Invitation       @relation(fields: [invitationId], references: [id], onDelete: Cascade)
-  reviews       Review[]
+  id                 String           @id @default(uuid())
+  cohortId           String
+  invitationId       String           @unique
+  category           String
+  fullName           String
+  email              String
+  repoUrl            String?
+  liveLink           String?
+  designLinks        String?
+  message            String
+  status             SubmissionStatus
+  averageRating      Float?
+  assignedReviewerId String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  cohort             Cohort           @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  invitation         Invitation       @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  reviews            Review[]
+  assignedReviewer   User?            @relation("ReviewerAssignments", fields: [assignedReviewerId], references: [id], onDelete: SetNull)
 
   @@index([cohortId, category, status])
   @@index([email])
+  @@index([assignedReviewerId])
 }
 
 model ChallengeCategory {
@@ -133,14 +143,16 @@ model ChallengeCategory {
 }
 
 model Review {
-  id             String     @id @default(uuid())
+  id             String          @id @default(uuid())
   submissionId   String
   reviewerUserId String
   rating         Int
+  criteriaScores Json? // Store array of { label: string, score: number, comment?: string }
+  recommendation Recommendation?
   comment        String
-  createdAt      DateTime   @default(now())
-  submission     Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  reviewer       User       @relation(fields: [reviewerUserId], references: [id], onDelete: Cascade)
+  createdAt      DateTime        @default(now())
+  submission     Submission      @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  reviewer       User            @relation(fields: [reviewerUserId], references: [id], onDelete: Cascade)
 
   @@index([submissionId])
 }

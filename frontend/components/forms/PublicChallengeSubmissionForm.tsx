@@ -14,9 +14,9 @@ export function PublicChallengeSubmissionForm({ category }: PublicChallengeSubmi
   const requirements = getSubmissionRequirements(category);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [githubUrl, setGithubUrl] = useState("");
-  const [deploymentUrl, setDeploymentUrl] = useState("");
-  const [figmaUrl, setFigmaUrl] = useState("");
+  const [repoUrl, setRepoUrl] = useState("");
+  const [liveLink, setLiveLink] = useState("");
+  const [designLinks, setDesignLinks] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -32,9 +32,9 @@ export function PublicChallengeSubmissionForm({ category }: PublicChallengeSubmi
       category,
       fullName,
       email,
-      githubUrl: requirements.requiresDesignAssets ? undefined : githubUrl || undefined,
-      deploymentUrl: requirements.requiresDesignAssets ? undefined : deploymentUrl || undefined,
-      figmaUrl: requirements.requiresDesignAssets ? figmaUrl || undefined : undefined,
+      repoUrl: requirements.requiresDesignAssets ? undefined : repoUrl || undefined,
+      liveLink: requirements.requiresDesignAssets ? undefined : liveLink || undefined,
+      designLinks: requirements.requiresDesignAssets ? designLinks || undefined : undefined,
       message,
     });
 
@@ -48,9 +48,9 @@ export function PublicChallengeSubmissionForm({ category }: PublicChallengeSubmi
     setSuccess("Submission received successfully. We’ll review it and follow up.");
     setFullName("");
     setEmail("");
-    setGithubUrl("");
-    setDeploymentUrl("");
-    setFigmaUrl("");
+    setRepoUrl("");
+    setLiveLink("");
+    setDesignLinks("");
     setMessage("");
   };
 
@@ -73,23 +73,23 @@ export function PublicChallengeSubmissionForm({ category }: PublicChallengeSubmi
       {requirements.requiresDesignAssets ? (
         <div>
           <label htmlFor="public-submit-figma" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>
-            Figma URL
+            Design Links (Figma, etc.)
           </label>
-          <input id="public-submit-figma" type="url" className="input-glass" value={figmaUrl} onChange={(e) => setFigmaUrl(e.target.value)} required />
+          <input id="public-submit-figma" type="url" className="input-glass" value={designLinks} onChange={(e) => setDesignLinks(e.target.value)} required />
         </div>
       ) : (
         <>
           <div>
             <label htmlFor="public-submit-github" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>
-              GitHub URL
+              Repository URL
             </label>
-            <input id="public-submit-github" type="url" className="input-glass" value={githubUrl} onChange={(e) => setGithubUrl(e.target.value)} required />
+            <input id="public-submit-github" type="url" className="input-glass" value={repoUrl} onChange={(e) => setRepoUrl(e.target.value)} required />
           </div>
           <div>
             <label htmlFor="public-submit-deploy" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>
-              Deployment URL
+              Live Deployment URL
             </label>
-            <input id="public-submit-deploy" type="url" className="input-glass" value={deploymentUrl} onChange={(e) => setDeploymentUrl(e.target.value)} required />
+            <input id="public-submit-deploy" type="url" className="input-glass" value={liveLink} onChange={(e) => setLiveLink(e.target.value)} required />
           </div>
         </>
       )}
