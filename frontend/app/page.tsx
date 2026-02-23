@@ -53,12 +53,6 @@ export default async function Home() {
       <div className="w-full max-w-6xl space-y-16 px-6 py-20 relative z-10">
         {/* ── Hero text ── */}
         <section className="text-center space-y-6" style={{ animation: "slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both" }}>
-          <div className="inline-block relative">
-            <div className="absolute inset-0 bg-[var(--glow-color)] blur-2xl opacity-40 rounded-full" />
-            <span className="relative badge badge-accent text-sm px-4 py-1.5 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] backdrop-blur-xl">
-              Cohort-Based
-            </span>
-          </div>
 
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1]">
             Build your future with the<br className="hidden md:block" />
