@@ -4,6 +4,8 @@ import { apiGet } from "@/lib/api";
 import { Challenge, Cohort } from "@/types/domain";
 import TimelinePhases from "@/components/public/TimelinePhases";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "DRID Internship Platform",
   description:

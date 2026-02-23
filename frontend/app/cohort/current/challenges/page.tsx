@@ -3,6 +3,8 @@ import Link from "next/link";
 import { apiGet } from "@/lib/api";
 import { Challenge } from "@/types/domain";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Challenge Tracks — DRID Internship",
   description: "Browse the available challenge tracks for the current cohort.",
