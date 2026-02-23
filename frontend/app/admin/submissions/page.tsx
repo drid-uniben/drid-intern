@@ -126,7 +126,7 @@ export default function AdminSubmissionsPage() {
       if (searchQuery) params.append("search", searchQuery);
       const query = params.toString() ? `?${params.toString()}` : "";
 
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/submissions/export${query}`;
+      const url = `/api/proxy/submissions/export${query}`;
 
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` }
