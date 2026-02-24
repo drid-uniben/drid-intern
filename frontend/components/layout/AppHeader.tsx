@@ -158,6 +158,8 @@ export function AppHeader() {
                 >
                   Logout
                 </button>
+              ) : null}
+              {/*
               ) : (
                 <Link
                   href="/login"
@@ -166,7 +168,8 @@ export function AppHeader() {
                 >
                   Login
                 </Link>
-              )}
+              )
+              */}
             </div>
           </m.nav>
         )}
