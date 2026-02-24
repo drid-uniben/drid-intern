@@ -9,6 +9,7 @@ import * as m from "motion/react-m";
 import { apiGet, apiPost } from "@/lib/api";
 import { useAuthToken } from "@/hooks/useAuth";
 import { ChallengeCategory } from "@/types/domain";
+import { validateChallengeDescriptionLinks } from "@/lib/challengeLinks";
 
 interface ChallengeResponse {
   id: string;
@@ -83,6 +84,12 @@ export function CreateChallengeForm({ cohortId }: { cohortId: string }) {
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const linkError = validateChallengeDescriptionLinks(state.description);
+    if (linkError) {
+      dispatch({ type: "RESULT", message: linkError, isSuccess: false });
+      return;
+    }
+
     dispatch({ type: "CLEAR_MESSAGE" });
     mutation.mutate();
   };
@@ -108,6 +115,9 @@ export function CreateChallengeForm({ cohortId }: { cohortId: string }) {
         <div>
           <label htmlFor="challenge-desc" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Description</label>
           <textarea id="challenge-desc" className="input-glass" rows={10} value={state.description} onChange={(e) => dispatch({ type: "SET_FIELD", field: "description", value: e.target.value })} placeholder="Challenge description" required style={{ resize: "vertical" }} />
+          <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
+            Add links with [text](https://example.com) or paste full https:// URLs.
+          </p>
         </div>
         <button className="btn-gradient w-full" type="submit" disabled={mutation.isPending}>
           {mutation.isPending ? "Creating..." : "Create challenge"}

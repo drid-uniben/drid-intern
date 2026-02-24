@@ -10,6 +10,7 @@ import { Challenge } from "@/types/domain";
 import { CardSkeleton } from "@/components/ui/LoadingSkeleton";
 import { useAuthToken } from "@/hooks/useAuth";
 import { useAppStore } from "@/lib/store";
+import { validateChallengeDescriptionLinks } from "@/lib/challengeLinks";
 
 export function ChallengeEditorForm({ challengeId }: { challengeId: string }) {
   const router = useRouter();
@@ -57,6 +58,13 @@ export function ChallengeEditorForm({ challengeId }: { challengeId: string }) {
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const linkError = validateChallengeDescriptionLinks(description);
+    if (linkError) {
+      setMessage(linkError);
+      setIsSuccess(false);
+      return;
+    }
+
     setMessage(null);
     mutation.mutate();
   };
@@ -76,6 +84,9 @@ export function ChallengeEditorForm({ challengeId }: { challengeId: string }) {
       <div>
         <label htmlFor="editor-desc" className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>Description</label>
         <textarea id="editor-desc" className="input-glass" rows={12} value={description} onChange={(e) => setDescriptionDraft(e.target.value)} required style={{ resize: "vertical" }} />
+        <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
+          Add links with [text](https://example.com) or paste full https:// URLs.
+        </p>
       </div>
       <button className="btn-gradient" type="submit" disabled={mutation.isPending}>
         {mutation.isPending ? "Saving..." : "Save challenge"}
