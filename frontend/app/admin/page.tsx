@@ -12,6 +12,7 @@ export default function AdminDashboardPage() {
     { href: "/admin/cohorts", label: "Cohorts", description: "Create and manage cohorts", icon: "📋" },
     { href: "/admin/challenges/categories", label: "Categories", description: "Manage challenge categories", icon: "🏷️" },
     { href: "/admin/submissions", label: "Submissions", description: "Review challenge submissions", icon: "📄" },
+    { href: "/admin/emails", label: "Emails", description: "Send filtered cohort campaigns", icon: "✉️" },
   ];
 
   return (

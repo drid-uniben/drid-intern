@@ -8,14 +8,15 @@ import * as m from "motion/react-m";
 import { apiPost } from "@/lib/api";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { useAppStore } from "@/lib/store";
+import { useSessionValidity } from "@/hooks/useSessionValidity";
 
-const navItems = (role: string | null, token: string | null) => {
+const navItems = (isAuthenticated: boolean) => {
   const items: { href: string; label: string; match: string; exact?: boolean }[] = [
     { href: "/cohort/current", label: "Cohort", match: "/cohort/current", exact: true },
     { href: "/cohort/current/challenges", label: "Challenges", match: "/cohort/current/challenges" },
   ];
 
-  if (token) {
+  if (isAuthenticated) {
     items.push({ href: "/dashboard", label: "Dashboard", match: "/dashboard" });
   }
 
@@ -34,10 +35,11 @@ export function AppHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const role = useAppStore((state) => state.userRole);
+  const { authInitialized, hasValidSession } = useSessionValidity();
   const token = useAppStore((state) => state.accessToken);
   const clearSession = useAppStore((state) => state.clearSession);
-  const items = navItems(role, token);
+  const isAuthenticated = authInitialized && hasValidSession;
+  const items = navItems(isAuthenticated);
 
   const logout = async () => {
     if (token) {
@@ -80,7 +82,7 @@ export function AppHeader() {
           })}
           <div className="ml-2 flex items-center gap-2">
             <ThemeToggle />
-            {token &&
+            {isAuthenticated &&
               <button
                 className="btn-gradient !py-1.5 !px-3 !text-sm !rounded-lg"
                 onClick={logout}
@@ -147,7 +149,7 @@ export function AppHeader() {
                   </Link>
                 );
               })}
-              {token ? (
+              {isAuthenticated ? (
                 <button
                   className="btn-gradient !text-sm mt-2"
                   onClick={() => {

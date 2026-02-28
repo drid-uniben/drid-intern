@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
-import { AuditLog, Challenge, ChallengeCategory, Cohort, Invitation, Notification, Review, Submission, User } from "../../types/domain";
+import { AuditLog, Challenge, ChallengeCategory, Cohort, Invitation, Notification, OutboundEmail, Review, Submission, User } from "../../types/domain";
 
 const toUser = (user: {
   id: string;
@@ -176,6 +176,32 @@ const toAuditLog = (auditLog: {
   entityId: auditLog.entityId,
   metadata: (auditLog.metadata ?? {}) as Record<string, unknown>,
   createdAt: auditLog.createdAt.toISOString(),
+});
+
+const toOutboundEmail = (email: {
+  id: string;
+  cohortId: string | null;
+  sentByUserId: string;
+  subject: string;
+  htmlBody: string;
+  filters: Prisma.JsonValue;
+  recipients: Prisma.JsonValue;
+  attemptedCount: number;
+  sentCount: number;
+  failedCount: number;
+  createdAt: Date;
+}): OutboundEmail => ({
+  id: email.id,
+  cohortId: email.cohortId,
+  sentByUserId: email.sentByUserId,
+  subject: email.subject,
+  htmlBody: email.htmlBody,
+  filters: email.filters as unknown as OutboundEmail["filters"],
+  recipients: email.recipients as unknown as OutboundEmail["recipients"],
+  attemptedCount: email.attemptedCount,
+  sentCount: email.sentCount,
+  failedCount: email.failedCount,
+  createdAt: email.createdAt.toISOString(),
 });
 
 const toChallengeCategory = (category: {
@@ -387,6 +413,18 @@ export const submissionRepository = {
     const submission = await prisma.submission.findUnique({ where: { invitationId } });
     return submission ? toSubmission(submission) : undefined;
   },
+  listForAudience: async (filters: { cohortId?: string; status?: Submission["status"]; category?: string }): Promise<Submission[]> => {
+    const submissions = await prisma.submission.findMany({
+      where: {
+        ...(filters.cohortId ? { cohortId: filters.cohortId } : {}),
+        ...(filters.status ? { status: filters.status } : {}),
+        ...(filters.category ? { category: filters.category } : {}),
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return submissions.map(toSubmission);
+  },
   create: async (payload: Omit<Submission, "id" | "createdAt" | "updatedAt" | "averageRating">): Promise<Submission> => {
     const submission = await prisma.submission.create({
       data: {
@@ -503,6 +541,36 @@ export const auditRepository = {
   list: async (): Promise<AuditLog[]> => {
     const logs = await prisma.auditLog.findMany({ orderBy: { createdAt: "desc" } });
     return logs.map(toAuditLog);
+  },
+};
+
+export const outboundEmailRepository = {
+  create: async (payload: Omit<OutboundEmail, "id" | "createdAt">): Promise<OutboundEmail> => {
+    const created = await prisma.outboundEmail.create({
+      data: {
+        cohortId: payload.cohortId,
+        sentByUserId: payload.sentByUserId,
+        subject: payload.subject,
+        htmlBody: payload.htmlBody,
+        filters: payload.filters as unknown as Prisma.InputJsonValue,
+        recipients: payload.recipients as unknown as Prisma.InputJsonValue,
+        attemptedCount: payload.attemptedCount,
+        sentCount: payload.sentCount,
+        failedCount: payload.failedCount,
+      },
+    });
+
+    return toOutboundEmail(created);
+  },
+  list: async (filters?: { cohortId?: string }): Promise<OutboundEmail[]> => {
+    const sent = await prisma.outboundEmail.findMany({
+      where: {
+        ...(filters?.cohortId ? { cohortId: filters.cohortId } : {}),
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return sent.map(toOutboundEmail);
   },
 };
 
