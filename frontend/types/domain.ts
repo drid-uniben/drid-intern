@@ -82,3 +82,33 @@ export interface AdminUser {
   approvedByAdmin: boolean;
   isActive: boolean;
 }
+
+export interface OutboundEmailFilter {
+  cohortId: string | null;
+  status: SubmissionStatus | null;
+  category: string | null;
+}
+
+export interface OutboundEmailRecipient {
+  submissionId: string;
+  fullName: string;
+  email: string;
+  category: string;
+  status: SubmissionStatus;
+}
+
+export interface OutboundEmailHistoryItem {
+  id: string;
+  cohortId: string | null;
+  sentByUserId: string;
+  subject: string;
+  htmlBody: string;
+  filters: OutboundEmailFilter;
+  recipients: OutboundEmailRecipient[];
+  attemptedCount: number;
+  sentCount: number;
+  failedCount: number;
+  createdAt: string;
+  cohortLabel: string;
+  senderLabel: string;
+}

@@ -7,6 +7,12 @@ interface InvitationEmailInput {
   category: string;
 }
 
+interface HtmlEmailInput {
+  to: string;
+  subject: string;
+  html: string;
+}
+
 class EmailService {
   private transporter = nodemailer.createTransport({
     host: env.SMTP_HOST,
@@ -27,6 +33,15 @@ class EmailService {
         <p>You have been invited to submit the DRID internship ${input.category} challenge.</p>
         <p>Use this secure link to continue: <a href="${input.inviteLink}">${input.inviteLink}</a></p>
       `,
+    });
+  }
+
+  async sendHtml(input: HtmlEmailInput): Promise<void> {
+    await this.transporter.sendMail({
+      from: `"DRID UNIBEN" <${process.env.EMAIL_FROM}>`,
+      to: input.to,
+      subject: input.subject,
+      html: input.html,
     });
   }
 }

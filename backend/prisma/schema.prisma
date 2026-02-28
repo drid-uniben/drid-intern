@@ -59,6 +59,7 @@ model User {
   reviews             Review[]
   auditLogs           AuditLog[]
   assignedSubmissions Submission[]   @relation("ReviewerAssignments")
+  sentEmails          OutboundEmail[] @relation("SentEmails")
 }
 
 model Cohort {
@@ -73,8 +74,28 @@ model Cohort {
   challenges        Challenge[]
   invitations       Invitation[]
   submissions       Submission[]
+  outboundEmails    OutboundEmail[]
 
   @@index([year, cohortNumber])
+}
+
+model OutboundEmail {
+  id             String   @id @default(uuid())
+  cohortId       String?
+  sentByUserId   String
+  subject        String
+  htmlBody       String
+  filters        Json
+  recipients     Json
+  attemptedCount Int
+  sentCount      Int
+  failedCount    Int
+  createdAt      DateTime @default(now())
+  cohort         Cohort?  @relation(fields: [cohortId], references: [id], onDelete: SetNull)
+  sentBy         User     @relation("SentEmails", fields: [sentByUserId], references: [id], onDelete: Restrict)
+
+  @@index([cohortId, createdAt])
+  @@index([sentByUserId, createdAt])
 }
 
 model Challenge {
