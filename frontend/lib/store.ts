@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { UserRole } from "@/types/domain";
 import { clearSessionCookies, readSessionCookies, saveSessionCookies, saveTokenCookies } from "@/lib/authCookies";
+import { isAccessTokenValid } from "@/lib/authSession";
 
 type Theme = "light" | "dark";
 
@@ -57,12 +58,17 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   initializeAuth: () => {
     const session = readSessionCookies();
+    const isValidAccessToken = session?.accessToken ? isAccessTokenValid(session.accessToken) : false;
     set({
-      accessToken: session?.accessToken ?? null,
-      refreshToken: session?.refreshToken ?? null,
-      userRole: session?.userRole ?? null,
+      accessToken: isValidAccessToken ? session?.accessToken ?? null : null,
+      refreshToken: isValidAccessToken ? session?.refreshToken ?? null : null,
+      userRole: isValidAccessToken ? session?.userRole ?? null : null,
       authInitialized: true,
     });
+
+    if (session && !isValidAccessToken) {
+      clearSessionCookies();
+    }
   },
   toggleTheme: () => {
     const nextTheme = get().theme === "light" ? "dark" : "light";
