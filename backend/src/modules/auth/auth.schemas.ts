@@ -8,10 +8,10 @@ export const signupSchema = z.object({
 
 export const loginSchema = z.object({
   email: z.string({
-    required_error: "Email is required"
+    error: "Email is required"
   }).email(),
   password: z.string({
-    required_error: "Password is required"
+    error: "Password is required"
   }).min(8),
 });
 
